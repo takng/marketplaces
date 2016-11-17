@@ -1,0 +1,770 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "WHD CF Template",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": { "default": "WHD Server Configuration" },
+          "Parameters": [ "InstanceType", "HttpsPort", "AccessLocation", "KeyName" ]
+        },
+        {
+          "Label": { "default": "WHD Repository Database Configuration" },
+          "Parameters": [ "DatabaseEmbedded", "DatabaseClass", "DatabaseHost", "DatabasePort", "DatabaseAllocatedStorage" ]
+        },
+        {
+          "Label": { "default": "WHD Repository Database Credentials" },
+          "Parameters": [ "DatabaseAdminUser", "DatabaseAdminPassword" ]
+        },
+        {
+          "Label": { "default": "WHD Credentials" },
+          "Parameters": [ "WHDFirstName", "WHDLastName", "WHDEmail", "WHDUser", "WHDPassword" ]
+        }
+      ],
+      "ParameterLabels": {
+        "InstanceType": { "default": "Instance Type" },
+        "AccessLocation": { "default": "HTTPS and SSH Access" },
+        "KeyName": { "default": "Key Pair Name" },
+        "HttpsPort": { "default": "WHD Application SSL Port" },
+        "DatabaseEmbedded": { "default": "Embedded PostgreSQL" },
+        "DatabaseClass": { "default": "Database Class" },
+        "DatabaseHost": { "default": "Database Instance Host Name" },
+        "DatabasePort": { "default": "Database Instance Port" },
+        "DatabaseAdminUser": { "default": "Admin User" },
+        "DatabaseAdminPassword": { "default": "Admin Password" },
+        "DatabaseAllocatedStorage": { "default": "Database Size" },
+        "WHDFirstName": { "default": "FirstName" },
+        "WHDLastName": { "default": "LastName" },
+        "WHDEmail": { "default": "E-Mail" },
+        "WHDUser": { "default": "Username" },
+        "WHDPassword": { "default": "Password" }
+      }
+    }
+  },
+
+  "Conditions": {
+    "CreateRDSCondition": {
+      "Fn::Equals": [
+        { "Ref": "DatabaseEmbedded" },
+        "false"
+      ]
+    },
+    "CreatePostgresCondition": {
+      "Fn::Equals": [
+        { "Ref": "DatabaseEmbedded" },
+        "true"
+      ]
+    }
+  },
+
+  "Parameters": {
+    "KeyName": {
+      "Description": "Name of an existing EC2 Key Pair to enable SSH access to the WHD Server instance",
+      "Type": "AWS::EC2::KeyPair::KeyName"
+    },
+
+    "InstanceType": {
+      "Description": "WHD Server EC2 instance type",
+      "Type": "String",
+      "Default": "t2.micro",
+      "AllowedValues": [ "t2.micro", "t2.small", "t2.medium", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge" ],
+      "ConstraintDescription": "must be a valid EC2 instance type."
+    },
+
+    "HttpsPort": {
+      "Default": "8081",
+      "Description": "WHD Application SSL port",
+      "Type": "Number",
+      "MinValue": "1100",
+      "MaxValue": "65535",
+      "ConstraintDescription": "must select a valid SSL port for Application."
+    },
+
+    "DatabaseEmbedded": {
+      "Default": "true",
+      "Description": "Embedded PostgreSQL Database, if set to false, a new RDS Instance will be created",
+      "Type": "String",
+      "AllowedValues": [ "true", "false" ],
+      "ConstraintDescription": "must select a valid database instance type."
+    },
+
+    "DatabaseClass": {
+      "Default": "db.t1.micro",
+      "Description": "WHD Repository database instance class",
+      "Type": "String",
+      "AllowedValues": [ "db.t1.micro", "db.t2.micro", "db.t2.small", "db.t2.medium", "db.m3.medium", "db.m3.large", "db.m3.xlarge", "db.m3.2xlarge" ],
+      "ConstraintDescription": "must select a valid database instance type."
+    },
+
+    "DatabaseHost": {
+      "Default": "localhost",
+      "Description": "WHD Repository database host name",
+      "Type": "String",
+      "AllowedValues": [ "localhost", "whd-mysql-db01" ],
+      "ConstraintDescription": "must select a valid database host name."
+    },
+
+    "DatabasePort": {
+      "Default": "20293",
+      "Description": "WHD Repository database instance port [ PostgreSQL : 20293, MySQL : 3306 ]",
+      "Type": "Number",
+      "MinValue": "4",
+      "MaxValue": "65535",
+      "ConstraintDescription": "must select a valid database instance port."
+    },
+
+    "DatabaseAdminUser": {
+      "Description": "WHD Repository database admin account username",
+      "Default": "admin",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "16",
+      "AllowedPattern": "[a-zA-Z][a-zA-Z0-9]*",
+      "ConstraintDescription": "must begin with a letter and contain only alphanumeric characters."
+    },
+
+    "DatabaseAdminPassword": {
+      "Default": "admin123",
+      "NoEcho": "true",
+      "Description": "WHD Repository database admin account password",
+      "Type": "String",
+      "MinLength": "8",
+      "MaxLength": "40",
+      "AllowedPattern": "[a-zA-Z0-9]*",
+      "ConstraintDescription": "must contain only alphanumeric characters."
+    },
+
+    "DatabaseAllocatedStorage": {
+      "Default": "10",
+      "Description": "Size of the WHD Repository database (Gb)",
+      "Type": "Number",
+      "MinValue": "10",
+      "MaxValue": "1024",
+      "ConstraintDescription": "must be between 10 and 1024Gb."
+    },
+
+    "WHDFirstName": {
+      "Description": "WHD Administrator User First Name",
+      "Default": "admin",
+      "Type": "String",
+      "MinLength": "0",
+      "MaxLength": "25"
+    },
+
+    "WHDLastName": {
+      "Description": "WHD Administrator User Last Name",
+      "Default": "admin",
+      "Type": "String",
+      "MinLength": "0",
+      "MaxLength": "25"
+    },
+
+    "WHDUser": {
+      "Default": "whd",
+      "Description": "WHD Administrator User",
+      "Type": "String",
+      "AllowedValues": [ "whd" ],
+      "AllowedPattern": "[w][h][d]",
+      "ConstraintDescription": "must be set to whd for the application to work."
+    },
+
+    "WHDPassword": {
+      "Default": "admin123",
+      "NoEcho": "true",
+      "Description": "WHD Application admin account password",
+      "Type": "String",
+      "MinLength": "6",
+      "MaxLength": "40",
+      "AllowedPattern": "[a-zA-Z0-9]*",
+      "ConstraintDescription": "must contain only alphanumeric characters."
+    },
+
+    "WHDEmail": {
+      "Description": "WHD Administrator Email Address",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "50",
+      "AllowedPattern": "^[_a-zA-Z0-9-]+(.[a-zA-Z0-9-]+)@[a-zA-Z0-9-]+(.[a-zA-Z0-9-]+)*(.[a-zA-Z]{2,4})$",
+      "ConstraintDescription": "must begin with a letter and contain only alphanumeric characters."
+    },
+
+    "AccessLocation": {
+      "Description": " The IP address range that can be used to SSH to the WHD Server instance and RDS if available",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "0.0.0.0/0",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+    }
+  },
+
+  "Mappings": {
+    "AWSInstanceType2Arch": {
+      "t1.micro": { "Arch": "PV64" },
+      "t2.micro": { "Arch": "HVM64" },
+      "t2.small": { "Arch": "HVM64" },
+      "t2.medium": { "Arch": "HVM64" },
+      "m1.small": { "Arch": "PV64" },
+      "m1.medium": { "Arch": "PV64" },
+      "m1.large": { "Arch": "PV64" },
+      "m1.xlarge": { "Arch": "PV64" },
+      "m2.xlarge": { "Arch": "PV64" },
+      "m2.2xlarge": { "Arch": "PV64" },
+      "m2.4xlarge": { "Arch": "PV64" },
+      "m3.medium": { "Arch": "HVM64" },
+      "m3.large": { "Arch": "HVM64" },
+      "m3.xlarge": { "Arch": "HVM64" },
+      "m3.2xlarge": { "Arch": "HVM64" },
+      "c1.medium": { "Arch": "PV64" },
+      "c1.xlarge": { "Arch": "PV64" },
+      "c3.large": { "Arch": "HVM64" },
+      "c3.xlarge": { "Arch": "HVM64" },
+      "c3.2xlarge": { "Arch": "HVM64" },
+      "c3.4xlarge": { "Arch": "HVM64" },
+      "c3.8xlarge": { "Arch": "HVM64" },
+      "g2.2xlarge": { "Arch": "HVMG2" },
+      "r3.large": { "Arch": "HVM64" },
+      "r3.xlarge": { "Arch": "HVM64" },
+      "r3.2xlarge": { "Arch": "HVM64" },
+      "r3.4xlarge": { "Arch": "HVM64" },
+      "r3.8xlarge": { "Arch": "HVM64" },
+      "i2.xlarge": { "Arch": "HVM64" },
+      "i2.2xlarge": { "Arch": "HVM64" },
+      "i2.4xlarge": { "Arch": "HVM64" },
+      "i2.8xlarge": { "Arch": "HVM64" },
+      "hi1.4xlarge": { "Arch": "HVM64" },
+      "hs1.8xlarge": { "Arch": "HVM64" },
+      "cr1.8xlarge": { "Arch": "HVM64" },
+      "cc2.8xlarge": { "Arch": "HVM64" }
+    },
+
+    "AWSRegionArch2AMI": {
+      "us-west-2": {
+        "PV64": "ami-0c288b6c",
+        "HVM64": "ami-0c288b6c",
+        "HVMG2": "ami-0c288b6c"
+      },
+      "ap-south-1": {
+        "PV64": "ami-1ffc8970",
+        "HVM64": "ami-1ffc8970",
+        "HVMG2": "ami-1ffc8970"
+      }
+    },
+    "RegionMap": {
+      "ap-south-1a": { "AMI": "ami-1ffc8970" }
+    },
+    "DatabaseEmbeddedToDBEngine": {
+      "DatabaseEmbedded": {
+        "true": "postgresql",
+        "false": "MySQL"
+      }
+    },
+    "DatabaseEmbeddedToDBHost": {
+      "DatabaseEmbedded": {
+        "true": "localhost",
+        "false": "whd-mysql-db01"
+      }
+    }
+  },
+
+  "Resources": {
+    "WHDRepositoryDatabase": {
+      "Type": "AWS::RDS::DBInstance",
+      "Condition": "CreateRDSCondition",
+      "Properties": {
+        "Engine": {
+          "Fn::FindInMap": [
+            "DatabaseEmbeddedToDBEngine",
+            "DatabaseEmbedded",
+            { "Ref": "DatabaseEmbedded" }
+          ]
+        },
+        "Port": { "Ref": "DatabasePort" },
+        "DBInstanceClass": { "Ref": "DatabaseClass" },
+        "DBInstanceIdentifier": { "Ref": "DatabaseHost" },
+        "AllocatedStorage": { "Ref": "DatabaseAllocatedStorage" },
+        "MasterUsername": { "Ref": "DatabaseAdminUser" },
+        "MasterUserPassword": { "Ref": "DatabaseAdminPassword" },
+        "VPCSecurityGroups": [ { "Fn::GetAtt": [ "WHDRepositoryDatabaseSecurityGroup", "GroupId" ] } ]
+      },
+
+      "DependsOn": [ "WHDRepositoryDatabaseSecurityGroup" ]
+    },
+
+    "WHDRepositoryDatabaseSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Enables database access from WHD server to Database Repository",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": { "Ref": "DatabasePort" },
+            "ToPort": { "Ref": "DatabasePort" },
+            "SourceSecurityGroupName": { "Ref": "WHDServerSecurityGroup" }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": { "Ref": "DatabasePort" },
+            "ToPort": { "Ref": "DatabasePort" },
+            "CidrIp": { "Ref": "AccessLocation" }
+          }
+        ]
+      },
+      "DependsOn": [ "WHDServerSecurityGroup" ]
+    },
+
+    "WHDServerSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Enables HTTPS (443) and SSH (22) access",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": { "Ref": "AccessLocation" }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": { "Ref": "AccessLocation" }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": { "Ref": "HttpsPort" },
+            "ToPort": { "Ref": "HttpsPort" },
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+
+    "WHDServer": {
+      "Type": "AWS::EC2::Instance",
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Timeout": "PT30M"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Init": {
+          "configSets": {
+            "InstallAndRun": [ "Install", "Configure" ]
+          },
+          "Install": {
+            "files": {
+              "/usr/local/webhelpdesk/whd-api-create-call.properties": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "{\n",
+                      "        \"vendor\": \"",
+                      {
+                        "Fn::FindInMap": [
+                          "DatabaseEmbeddedToDBEngine",
+                          "DatabaseEmbedded",
+                          { "Ref": "DatabaseEmbedded" }
+                        ]
+                      },
+                      "\",\n",
+                      "        \"host\" : \"",
+                      {
+                        "Fn::If": [
+                          "CreateRDSCondition",
+                          { "Fn::GetAtt": [ "WHDRepositoryDatabase", "Endpoint.Address" ] },
+                          { "Ref": "DatabaseHost" }
+                        ]
+                      },
+                      "\",\n",
+                      "        \"port\" : \"",
+                      { "Ref": "DatabasePort" },
+                      "\",\n",
+                      "        \"databaseName\" : \"whd\",\n",
+                      "        \"dbAdminUserName\" : \"",
+                      { "Ref": "DatabaseAdminUser" },
+                      "\",\n",
+                      "        \"dbAdminPassword\" : \"",
+                      { "Ref": "DatabaseAdminPassword" },
+                      "\",\n",
+                      "        \"userNameForDbOwner\" : \"",
+                      { "Ref": "WHDUser" },
+                      "\",\n",
+                      "        \"passwordForDbOwner\" : \"",
+                      { "Ref": "WHDPassword" },
+                      "\",\n",
+                      "}\n"
+                    ]
+                  ]
+                },
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              },
+              "/usr/local/webhelpdesk/whd-api-config-call.properties": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "{\n",
+                      "    \"database\" : {\n",
+                      "        \"vendor\": \"",
+                      {
+                        "Fn::FindInMap": [
+                          "DatabaseEmbeddedToDBEngine",
+                          "DatabaseEmbedded",
+                          { "Ref": "DatabaseEmbedded" }
+                        ]
+                      },
+                      "\",\n",
+                      "        \"host\" : \"",
+                      {
+                        "Fn::If": [
+                          "CreateRDSCondition",
+                          { "Fn::GetAtt": [ "WHDRepositoryDatabase", "Endpoint.Address" ] },
+                          { "Ref": "DatabaseHost" }
+                        ]
+                      },
+                      "\",\n",
+                      "        \"port\" : \"",
+                      { "Ref": "DatabasePort" },
+                      "\",\n",
+                      "        \"databaseName\" : \"whd\",\n",
+                      "        \"embedded\" : ",
+                      { "Ref": "DatabaseEmbedded" },
+                      ",\n",
+                      "        \"dbAdminUserName\" : \"",
+                      { "Ref": "DatabaseAdminUser" },
+                      "\",\n",
+                      "        \"dbAdminPassword\" : \"",
+                      { "Ref": "DatabaseAdminPassword" },
+                      "\",\n",
+                      "        \"userName\" : \"",
+                      { "Ref": "WHDUser" },
+                      "\",\n",
+                      "        \"password\" : \"",
+                      { "Ref": "WHDPassword" },
+                      "\",\n",
+                      "        \"id\" : null",
+                      "\n",
+                      "    },\n",
+                      "    \"incomingEmail\": {\n",
+                      "      \"emailAddress\": \"\",\n",
+                      "      \"accountType\": \"IMAP\",\n",
+                      "      \"host\": \"\",\n",
+                      "      \"port\": \"\",\n",
+                      "      \"useSsl\": \"\",\n",
+                      "      \"userName\": \"\",\n",
+                      "      \"password\": \"\",\n",
+                      "      \"testEmailAddresses\": \"\",\n",
+                      "      \"id\": null\n",
+                      "    },\n",
+                      "    \"outgoingEmail\": {\n",
+                      "      \"emailAddress\": \"\",\n",
+                      "      \"accountType\": \"IMAP\",\n",
+                      "      \"host\": \"\",\n",
+                      "      \"port\": \"\",\n",
+                      "      \"useSsl\": \"\",\n",
+                      "      \"userName\": \"\",\n",
+                      "      \"password\": \"\",\n",
+                      "      \"testEmailAddresses\": \"\",\n",
+                      "      \"id\": null\n",
+                      "    },\n",
+                      "   \"admin\": {\n",
+                      "    \"firstName\": \"",
+                      { "Ref": "WHDFirstName" },
+                      "\",\n",
+                      "    \"lastName\": \"",
+                      { "Ref": "WHDLastName" },
+                      "\",\n",
+                      "    \"userName\": \"",
+                      { "Ref": "WHDUser" },
+                      "\",\n",
+                      "    \"password\": \"",
+                      { "Ref": "WHDPassword" },
+                      "\",\n",
+                      "    \"passwordMd5\": \"\",\n",
+                      "    \"email\": \"",
+                      { "Ref": "WHDEmail" },
+                      "\",\n",
+                      "    \"id\": null,\n",
+                      "   }\n",
+                      "}\n"
+                    ]
+                  ]
+                },
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              },
+              "/usr/local/webhelpdesk/whd-install-mysql-jdbc.sh": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "#!/bin/bash\n",
+                      "JAVA_DIR=\"/usr/share/java\"\n",
+                      "WHD_HOME=$(ls -d /usr/local/webhelpdesk)\n",
+                      "echo \"Running : $0\"\n",
+                      "echo \"WHD_HOME: $WHD_HOME\"\n",
+                      "if [ ! -d \"$WHD_HOME\" ];\n",
+                      "then\n",
+                      "  exit -1;\n",
+                      "fi\n",
+                      "if [ ! -d \"$WHD_HOME/bin/jre/lib/ext\" ];\n",
+                      "then\n",
+                      "  exit -1;\n",
+                      "fi\n",
+                      "# Install MySQL Driver if required, if Database Embedded is false\n",
+                      "if [ \"",
+                      { "Ref": "DatabaseEmbedded" },
+                      "\" == \"false\" ];\n",
+                      "then\n",
+                      "  echo \"*** installing MySQL Driver\"\n",
+                      "  yum install -y mysql-connector-java\n",
+                      "if [ -f \"$JAVA_DIR/mysql-connector-java.jar\" ];\n",
+                      "then\n",
+                      "  cp $JAVA_DIR/mysql-connector-java.jar $WHD_HOME/bin/jre/lib/ext\n",
+                      "else\n",
+                      "  exit -1;\n",
+                      "fi\n",
+                      "else\n",
+                      "  echo Skipped Installing JDBC Connector\n",
+                      "fi\n",
+                      "exit 0;\n"
+                    ]
+                  ]
+                },
+                "mode": "000744",
+                "owner": "root",
+                "group": "root"
+              },
+              "/usr/local/webhelpdesk/whd-start.sh": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "#!/bin/bash\n",
+                      "echo \"Running : $0\"\n",
+                      "WHD_HOME=$(ls -d /usr/local/webhelpdesk)\n",
+                      "NUMBER_OF_ATTEMPTS=3\n",
+                      "echo \"WHD_HOME: $WHD_HOME\"\n",
+                      "# Launch WHD\n",
+                      "echo Starting WHD...in $NUMBER_OF_ATTEMPTS tries\n",
+                      "$WHD_HOME/whd restart ",
+                      { "Ref": "HttpsPort" },
+                      "\n",
+                      "for ((i=1;i<=$NUMBER_OF_ATTEMPTS;i++))\n",
+                      "do\n",
+                      "echo Attempt : $i\n",
+                      "# Test WHD\n",
+                      "  sleep 10\n",
+                      "WHD_RESPONSE=`ps -ef | grep -ic tomcat`\n",
+                      "if [ $WHD_RESPONSE -gt 0 ];\n",
+                      "then\n",
+                      "  echo WHD was running on first test\n",
+                      "  break;\n",
+                      "else\n",
+                      "  echo WHD was NOT running on first test: sleeping for 30 seconds\n",
+                      "fi\n",
+                      "done\n",
+                      "if [ $WHD_RESPONSE -le 0 ];\n",
+                      "then\n",
+                      "  echo WHD did not startup after $NUMBER_OF_ATTEMPTS tries\n",
+                      "  exit -1;\n",
+                      "fi\n",
+                      "exit 0;\n"
+                    ]
+                  ]
+                },
+                "mode": "000744",
+                "owner": "root",
+                "group": "root"
+              },
+              "/usr/local/webhelpdesk/whd-configure.sh": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "#!/bin/bash\n",
+                      "echo \"Running : $0\"\n",
+                      "WHD_HOME=$(ls -d /usr/local/webhelpdesk)\n",
+                      "echo \"WHD_HOME: $WHD_HOME\"\n",
+                      "# Check if Instance Started\n",
+                      "if [ -f $WHD_HOME/conf/whd.conf ] \n",
+                      "then\n",
+                      "  echo WHD Started calling CURL Commands\n",
+                      "  REST_ENDPOINT=http://",
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "localhost:",
+                            { "Ref": "HttpsPort" }
+                          ]
+                        ]
+                      },
+                      "\n",
+                      "if [ \"",
+                      { "Ref": "DatabaseEmbedded" },
+                      "\" == \"false\" ];\n",
+                      "then\n",
+                      "  echo \"*** Creating Database and Users\"\n",
+                      "  CREATE_REST_URL=\"$REST_ENDPOINT/helpdesk/WebObjects/Helpdesk.woa/ra/configuration/database/create.json\"\n",
+                      "  echo CURL : curl -sX POST -d @$WHD_HOME/whd-api-create-call.properties $CREATE_REST_URL --header \"Content-Type:application/json\"\n",
+                      "  RESP=$(curl -sX POST -d @$WHD_HOME/whd-api-create-call.properties $CREATE_REST_URL --header \"Content-Type:application/json\")\n",
+                      "  echo \"CREATE_REST_URL RESPONSE : $RESP\"\n",
+                      "  STATUS=$(echo $RESP | awk -F',' '{print $2}' | cut -d':' -f2 | sed 's/\"//g')\n",
+                      "  echo STATUS: $STATUS\n",
+                      "  sleep 15\n",
+                      "fi\n",
+                      "  UNIQUE_ID=$(date +%d%m%y%H%M%S%N)\n",
+                      "  CONFIG_REST_URL=\"$REST_ENDPOINT/helpdesk/WebObjects/Helpdesk.woa/ra/configuration.json?uniqueId=$UNIQUE_ID\"\n",
+                      "  echo CURL : curl -sX POST -d @$WHD_HOME/whd-api-config-call.properties $CONFIG_REST_URL --header \"Content-Type:application/json\"\n",
+                      "  RESP=$(curl -sX POST -d @$WHD_HOME/whd-api-config-call.properties $CONFIG_REST_URL --header \"Content-Type:application/json\")\n",
+                      "  echo \"CONFIG_REST_URL RESPONSE : $RESP\"\n",
+                      "  STATUS=$(echo $RESP | awk -F',' '{print $2}' | cut -d':' -f2 | sed 's/\"//g')\n",
+                      "  echo STATUS: $STATUS\n",
+                      "  if [ \"$STATUS\" = \"done\" ];\n",
+                      "  then\n",
+                      "    echo WHD Repository Created\n",
+                      "  else\n",
+                      "    echo WHD Repository Creation Failed\n",
+                      "    RESP_MSG=$(echo ${RESP})\n",
+                      "    echo Error: $RESP_MSG\n",
+                      "  fi\n",
+                      "else\n",
+                      " echo Cannot find Configuration file : $WHD_HOME/conf/whd.conf\n",
+                      " exit -1;\n",
+                      "fi\n",
+                      "exit 0;\n"
+                    ]
+                  ]
+                },
+                "mode": "000744",
+                "owner": "root",
+                "group": "root"
+              }
+            },
+            "commands": {
+              "install_jdbc": {
+                "command": "/usr/local/webhelpdesk/whd-install-mysql-jdbc.sh >> /usr/local/webhelpdesk/whd-config.log"
+              },
+              "start_whd": {
+                "command": "/usr/local/webhelpdesk/whd-start.sh >> /usr/local/webhelpdesk/whd-config.log"
+              }
+            }
+          },
+          "Configure": {
+            "commands": {
+              "configure_whd": {
+                "command": "/usr/local/webhelpdesk/whd-configure.sh >> /usr/local/webhelpdesk/whd-config.log"
+              },
+            }
+          }
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "AWSRegionArch2AMI",
+            { "Ref": "AWS::Region" },
+            {
+              "Fn::FindInMap": [
+                "AWSInstanceType2Arch",
+                { "Ref": "InstanceType" },
+                "Arch"
+              ]
+            }
+          ]
+        },
+        "InstanceType": { "Ref": "InstanceType" },
+        "SecurityGroups": [ { "Ref": "WHDServerSecurityGroup" } ],
+        "KeyName": { "Ref": "KeyName" },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value" : { "Ref" : "AWS::StackName" }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash -xe\n",
+                "yum install -y python-setuptools && yum clean all",
+                "\n",
+                "# Now install cfn scripts",
+                "\n",
+                "/usr/bin/easy_install --script-dir /opt/aws/bin https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz",
+                "\n",
+                "/opt/aws/bin/cfn-init -v ",
+                " --stack ",
+                { "Ref": "AWS::StackId" },
+                " --resource WHDServer ",
+                " --configsets InstallAndRun ",
+                " --region ",
+                { "Ref": "AWS::Region" },
+                "\n",
+                "/opt/aws/bin/cfn-signal -e $? ",
+                " --stack ",
+                { "Ref": "AWS::StackId" },
+                " --resource WHDServer ",
+                " --region ",
+                { "Ref": "AWS::Region" },
+                "\n"
+              ]
+            ]
+          }
+        }
+      },
+
+      "DependsOn": [
+        "WHDServerSecurityGroup",
+        "WHDRepositoryDatabaseSecurityGroup"
+      ]
+    }
+  },
+  "Outputs": {
+    "PublicDnsName": {
+      "Description": "The Public DNS of Infrastructure",
+      "Value": { "Fn::GetAtt": [ "WHDServer", "PublicDnsName" ] }
+    },
+    "RDSHost": {
+      "Value": {
+        "Fn::GetAtt": [ "WHDRepositoryDatabase", "Endpoint.Address" ]
+      },
+      "Condition": "CreateRDSCondition"
+    },
+    "RDSPort": {
+      "Value": {
+        "Fn::GetAtt": [ "WHDRepositoryDatabase", "Endpoint.Port" ]
+      },
+      "Condition": "CreateRDSCondition"
+    },
+    "StackId": {
+      "Value": { "Ref": "AWS::StackId" }
+    },
+    "WHDRegion": {
+      "Value": { "Ref": "AWS::Region" }
+    },
+    "WHDUrl": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "http://",
+            { "Fn::GetAtt": [ "WHDServer", "PublicDnsName" ] },
+            ":",
+            { "Ref": "HttpsPort" },
+            "/"
+          ]
+        ]
+      },
+      "Description": "URL for WHD application"
+    }
+  }
+}
