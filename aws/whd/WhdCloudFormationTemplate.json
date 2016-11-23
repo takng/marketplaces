@@ -241,9 +241,14 @@
 
     "AWSRegionArch2AMI": {
       "us-west-2": {
-        "PV64": "ami-0c288b6c",
-        "HVM64": "ami-0c288b6c",
-        "HVMG2": "ami-0c288b6c"
+        "PV64": "ami-bfd877df",
+        "HVM64": "ami-bfd877df",
+        "HVMG2": "ami-bfd877df"
+      },
+      "us-east-1": {
+        "PV64": "ami-f11323e6",
+        "HVM64": "ami-f11323e6",
+        "HVMG2": "ami-f11323e6"
       },
       "ap-south-1": {
         "PV64": "ami-1ffc8970",
@@ -252,7 +257,8 @@
       }
     },
     "RegionMap": {
-      "ap-south-1a": { "AMI": "ami-1ffc8970" }
+      "us-west-2": { "AMI": "ami-bfd877df" },
+      "us-east-1": { "AMI": "ami-f11323e6" }
     },
     "DatabaseEmbeddedToDBEngine": {
       "DatabaseEmbedded": {
