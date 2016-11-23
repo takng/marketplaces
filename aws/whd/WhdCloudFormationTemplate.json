@@ -246,9 +246,9 @@
         "HVMG2": "ami-bfd877df"
       },
       "us-east-1": {
-        "PV64": "ami-f11323e6",
-        "HVM64": "ami-f11323e6",
-        "HVMG2": "ami-f11323e6"
+        "PV64": "ami-a00636b7",
+        "HVM64": "ami-a00636b7",
+        "HVMG2": "ami-a00636b7"
       },
       "ap-south-1": {
         "PV64": "ami-1ffc8970",
@@ -258,7 +258,7 @@
     },
     "RegionMap": {
       "us-west-2": { "AMI": "ami-bfd877df" },
-      "us-east-1": { "AMI": "ami-f11323e6" }
+      "us-east-1": { "AMI": "ami-a00636b7" }
     },
     "DatabaseEmbeddedToDBEngine": {
       "DatabaseEmbedded": {
@@ -558,6 +558,18 @@
                       "NUMBER_OF_ATTEMPTS=3\n",
                       "echo \"WHD_HOME: $WHD_HOME\"\n",
                       "# Launch WHD\n",
+                      "if [ ! -f $WHD_HOME/conf/whd.conf ] \n",
+                      "then\n",
+                      "  echo Creating Conf File ..Calling whd Start Commands\n",
+                      "   $WHD_HOME/whd start ",
+                      { "Ref": "HttpsPort" },
+                      "\n",
+                      "fi\n",
+                      "if [ -f $WHD_HOME/conf/whd.conf ] \n",
+                      "then\n",
+                      "  echo Modifying Privileged network .. calling SED Commands\n",
+                      "  sed -i 's/^PRIVILEGED_NETWORKS=[[:space:]]*$/PRIVILEGED_NETWORKS=0.0.0.0\/0/g' $WHD_HOME/conf/whd.conf\n",
+                      "fi\n",
                       "echo Starting WHD...in $NUMBER_OF_ATTEMPTS tries\n",
                       "$WHD_HOME/whd restart ",
                       { "Ref": "HttpsPort" },
@@ -667,7 +679,7 @@
             "commands": {
               "configure_whd": {
                 "command": "/usr/local/webhelpdesk/whd-configure.sh >> /usr/local/webhelpdesk/whd-config.log"
-              },
+              }
             }
           }
         }
@@ -692,7 +704,7 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value" : { "Ref" : "AWS::StackName" }
+            "Value": { "Ref": "AWS::StackName" }
           }
         ],
         "UserData": {
