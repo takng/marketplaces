@@ -1,0 +1,283 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualMachineName": {
+      "defaultValue": "WHDServer",
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Virtual Machine."
+      }
+    },
+    "virtualMachineSize": {
+      "type": "string",
+      "allowedValues": [
+        "Standard_A1",
+        "Standard_A2",
+        "Standard_A3",
+        "Standard_A4",
+        "Standard_D1",
+        "Standard_D2",
+        "Standard_D3",
+        "Standard_D4"
+      ],
+      "metadata": {
+        "description": "Size of Virtual Machine Image"
+      }
+    },
+    "publicDomainName": {
+      "defaultValue": "whd",
+      "type": "string",
+      "metadata": {
+        "description": "Public DNS (Domain Name) for the Web Help Desk Application. [.location.cloudapp.azure.com] will be automatically added to the Azure DNS Service."
+      }
+    },
+    "adminUserName": {
+      "defaultValue": "sysadmin",
+      "type": "string",
+      "metadata": {
+        "description": "OS Admin User Name for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "defaultValue": null,
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    },
+    "whdAdminUserName": {
+      "defaultValue": "whdadmin",
+      "type": "string",
+      "metadata": {
+        "description": "WHD Database Admin User Name."
+      }
+    },
+    "whdAdminPassword": {
+      "defaultValue": null,
+      "type": "securestring",
+      "metadata": {
+        "description": "WHD Database Admin Password."
+      }
+    }
+  },
+  "variables": {
+
+    "resourceGroupPrefix": "[parameters('virtualMachineName')]",
+    "apiVersion": "2015-05-01-preview",
+    "location": "[resourceGroup().location]",
+
+    "productImagePublisher": "OpenLogic",
+    "productImageOffer": "CentOS",
+    "productImageSKU": "7.2",
+    "productImageVersion": "latest",
+
+    "httpPort": 8081,
+    "dbPort": 20293,
+
+    "storageAccountType": "Standard_LRS",
+    "storageAccountName": "[concat(variables('resourceGroupPrefix'),'-disks')]",
+    "vmStorageAccountContainerName": "vhds",
+    "osDiskName": "[concat(variables('resourceGroupPrefix'),'-osdisk')]",
+    "dataDiskName": "[concat(variables('resourceGroupPrefix'),'-datadisk')]",
+
+    "virtualNetworkName": "[concat(variables('resourceGroupPrefix'),'-vnet')]",
+    "virtualNetworkID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+    "networkInterfaceName": "[concat(variables('resourceGroupPrefix'),'-nic')]",
+    "virtualNetworkAddressPrefix": "10.0.0.0/16",
+
+    "subnetName": "[concat(variables('resourceGroupPrefix'),'-subnet')]",
+    "subnetPrefix": "10.0.0.0/24",
+    "subnetRef": "[concat(variables('virtualNetworkID'),'/subnets/',variables('subnetName'))]",
+
+    "networkSecurityGroupName": "[concat(variables('resourceGroupPrefix'),'-nsg')]",
+    "publicIPAddressName": "[concat(variables('resourceGroupPrefix'),'-publicip')]",
+    "publicIPAddressType": "Dynamic"
+  },
+  "resources": [
+    {
+      "comments": "This is a Resource Group Template (ARM) for WebHelpDesk. This is based on the RHEL rpm installed on a CentOS Latest base and embedded PostGreSQL database. (Created from VM Image on Azure).",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('virtualMachineName')]",
+      "apiVersion": "2015-06-15",
+      "location": "[variables('location')]",
+      "plan": {
+        "name": "whd-byol",
+        "publisher": "solarwinds",
+        "product": "solarwinds-web-help-desk"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('virtualMachineSize')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('productImagePublisher')]",
+            "offer": "[variables('productImageOffer')]",
+            "sku": "[variables('productImageSKU')]",
+            "version": "[variables('productImageVersion')]"
+          },
+          "osDisk": {
+            "name": "[parameters('virtualMachineName')]",
+            "createOption": "FromImage",
+            "vhd": {
+              "uri": "[concat('https', '://', variables('storageAccountName'), '.blob.core.windows.net', concat('/vhds/', parameters('virtualMachineName'),'20161029193355.vhd'))]"
+            },
+            "caching": "ReadWrite"
+          },
+          "dataDisks": [ ]
+        },
+        "osProfile": {
+          "computerName": "[parameters('virtualMachineName')]",
+          "adminUsername": "[parameters('adminUser')]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": false
+          },
+          "secrets": [ ],
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+      ]
+    },
+    {
+      "comments": "Network Interface for Web Help Desk.",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('networkInterfaceName')]",
+      "apiVersion": "2016-03-30",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+        "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName'))]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]"
+              },
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ],
+        "enableIPForwarding": false,
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+        }
+      }
+    },
+    {
+      "comments": "Network Security Group",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('networkSecurityGroupName')]",
+      "apiVersion": "2016-03-30",
+      "location": "[variables('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "default-allow-ssh",
+            "properties": {
+              "access": "Allow",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "22",
+              "direction": "Inbound",
+              "priority": 1000,
+              "protocol": "TCP",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*"
+            }
+          },
+          {
+            "name": "HTTPS443",
+            "properties": {
+              "priority": 1010,
+              "sourceAddressPrefix": "*",
+              "protocol": "TCP",
+              "destinationPortRange": "443",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*"
+            }
+          },
+          {
+            "name": "default-allow-http",
+            "properties": {
+              "access": "Allow",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "[variables('httpPort')]",
+              "direction": "Inbound",
+              "priority": 1020,
+              "protocol": "TCP",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "comments": "Public IP Address to access SSH and Web Site.",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddressName')]",
+      "apiVersion": "2016-03-30",
+      "location": "[variables('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIpAddressType')]",
+        "idleTimeoutInMinutes": 4,
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('publicDomainName')]"
+        }
+      }
+    },
+    {
+      "comments": "Virtual Networks",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworkName')]",
+      "apiVersion": "2016-03-30",
+      "location": "[variables('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('virtualNetworkAddressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('subnetPrefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "comments": "Storage Account for VHDs.",
+      "type": "Microsoft.Storage/storageAccounts",
+      "kind": "Storage",
+      "name": "[variables('storageAccountName')]",
+      "apiVersion": "2016-01-01",
+      "location": "[variables('location')]",
+      "tags": { },
+      "properties": {
+        "accountType": "[variables('storageAccountType')]"
+      }
+    }
+  ]
+}
