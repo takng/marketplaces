@@ -62,20 +62,26 @@
     }
   },
   "variables": {
+    "osType": "Linux",
+    "productName": "WebHelpDesk",
+    "productMajorVersion": "12.5.0",
+    "productMinorVersion": "1257-1",
+    "productRPMFile": "[concat(toLower(variables('productName')),'-',variables('productMajorVersion'),'.',variables('productMinorVersion'),'.x86_64.rpm')]",
+    "productGZIPFile": "[concat(variables('productRPMFile'),'gz')]",
+    "productDownloadURL": "[concat('http://downloads.solarwinds.com/solarwinds/Release/',variables('productName'),'/',variables('productMajorVersion'),'/',variables('osTypee'),'/',variables('productGZIPFile'))]",
 
     "resourceGroupPrefix": "[parameters('virtualMachineName')]",
     "apiVersion": "2015-05-01-preview",
     "location": "[resourceGroup().location]",
 
-    "productImagePublisher": "solarwinds",
-    "productImageOffer": "solarwinds-web-help-desk",
-    "productImageSKU": "dpa-byol",
+    "productImagePublisher": "OpenLogic",
+    "productImageOffer": "CentOS",
+    "productImageSKU": "7.2",
     "productImageVersion": "latest",
 
     "httpPort": 8081,
     "dbPort": 20293,
 
-    "osType": "linux",
     "storageAccountType": "Standard_LRS",
     "storageAccountTier": "Standard",
     "storageAccountName": "[toLower(concat(variables('resourceGroupPrefix'),'disks'))]",
@@ -108,11 +114,7 @@
       "name": "[parameters('virtualMachineName')]",
       "apiVersion": "2015-06-15",
       "location": "[variables('location')]",
-      "plan": {
-        "name": "[variables('productImageSKU')]",
-        "publisher": "[variables('productImagePublisher')]",
-        "product": "[variables('productImageOffer')]"
-      },
+
       "properties": {
         "hardwareProfile": {
           "vmSize": "[parameters('virtualMachineSize')]"
@@ -126,14 +128,22 @@
           },
           "osDisk": {
             "name": "[parameters('virtualMachineName')]",
-            "osType": "[variables('osType')]",
-            "vhd": {
-              "uri": "[concat('https', '://', variables('sourceStorageAccountName'), '.blob.core.windows.net', '/',variables('sourceStorageAccountContainerName'),'/', variables('sourceOSDiskImage'))]"
-            },
             "createOption": "FromImage",
+            "vhd": {
+              "uri": "[concat('https', '://', variables('storageAccountName'), '.blob.core.windows.net', '/',variables('storageAccountContainerName'),'/',variables('osDiskName'),'.vhd')]"
+            },
             "caching": "ReadWrite"
           },
           "dataDisks": [ ]
+        },
+        "osProfile": {
+          "computerName": "[parameters('virtualMachineName')]",
+          "adminUsername": "[parameters('adminUserName')]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": false
+          },
+          "secrets": [ ],
+          "adminPassword": "[parameters('adminPassword')]"
         },
         "networkProfile": {
           "networkInterfaces": [
@@ -267,17 +277,56 @@
       }
     },
     {
-      "comments": "Storage Account for VHDs.",
-      "type": "Microsoft.Storage/storageAccounts",
-      "kind": "Storage",
-      "name": "[variables('storageAccountName')]",
       "apiVersion": "2016-01-01",
+      "comments": "Storage Account for VHDs.",
+      "kind": "Storage",
       "location": "[variables('location')]",
-      "tags": { },
+      "name": "[variables('storageAccountName')]",
       "sku": {
         "name": "[variables('storageAccountType')]",
         "tier": "[variables('storageAccountTier')]"
+      },
+      "tags": { },
+      "type": "Microsoft.Storage/storageAccounts"
+    },
+    {
+      "name": "[concat(parameters('virtualMachineName'),'/CustomScriptForLinux')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "location": "[variables('location')]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('virtualMachineName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "1.4",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+        },
+        "protectedSettings": {
+          "fileUris": [ "https://github.com/solarwinds/marketplaces/tree/master/azure/whd/whd-install.sh" ],
+          "commandToExecute": "bash whd-install.sh"
+        }
       }
     }
-  ]
+  ],
+  "outputs": {
+    "adminUsername": {
+      "type": "string",
+      "value": "[parameters('adminUsername')]"
+    },
+    "productRPMFile": {
+      "type": "string",
+      "value": "[parameters('productRPMFile')]"
+    },
+    "productGZIPFile": {
+      "type": "string",
+      "value": "[parameters('productGZIPFile')]"
+    },
+    "productDownloadURL": {
+      "type": "string",
+      "value": "[parameters('productDownloadURL')]"
+    }
+  }
 }
