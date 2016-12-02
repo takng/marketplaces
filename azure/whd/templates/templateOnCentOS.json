@@ -25,6 +25,16 @@
         "description": "Size of Virtual Machine Image"
       }
     },
+    "productVersion": {
+      "type": "string",
+      "allowedValues": [
+        "Latest",
+        "WebHelpDesk_12_5_0"
+      ],
+      "metadata": {
+        "description": "Version of Web Help Desk"
+      }
+    },
     "publicDomainName": {
       "defaultValue": "whd",
       "type": "string",
@@ -62,13 +72,17 @@
     }
   },
   "variables": {
+    "Latest": {
+      "productName": "WebHelpDesk",
+      "productMajorVersion": "12.5.0",
+      "productMinorVersion": "1257-1"
+    },
+    "WebHelpDesk_12_5_0": {
+      "productName": "WebHelpDesk",
+      "productMajorVersion": "12.5.0",
+      "productMinorVersion": "1257-1"
+    },
     "osType": "Linux",
-    "productName": "WebHelpDesk",
-    "productMajorVersion": "12.5.0",
-    "productMinorVersion": "1257-1",
-    "productRPMFile": "[concat(toLower(variables('productName')),'-',variables('productMajorVersion'),'.',variables('productMinorVersion'),'.x86_64.rpm')]",
-    "productGZIPFile": "[concat(variables('productRPMFile'),'gz')]",
-    "productDownloadURL": "[concat('http://downloads.solarwinds.com/solarwinds/Release/',variables('productName'),'/',variables('productMajorVersion'),'/',variables('osTypee'),'/',variables('productGZIPFile'))]",
 
     "resourceGroupPrefix": "[parameters('virtualMachineName')]",
     "apiVersion": "2015-05-01-preview",
@@ -295,7 +309,7 @@
       "location": "[variables('location')]",
       "apiVersion": "2015-06-15",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('virtualMachineName'))]"
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]"
       ],
       "properties": {
         "publisher": "Microsoft.OSTCExtensions",
@@ -303,10 +317,8 @@
         "typeHandlerVersion": "1.4",
         "autoUpgradeMinorVersion": true,
         "settings": {
-        },
-        "protectedSettings": {
-          "fileUris": [ "https://github.com/solarwinds/marketplaces/tree/master/azure/whd/whd-install.sh" ],
-          "commandToExecute": "bash whd-install.sh"
+          "fileUris": [ "https://raw.githubusercontent.com/solarwinds/marketplaces/master/azure/whd/whd-install.sh" ],
+          "commandToExecute": "bash -x whd-install.sh -p [variables(parameters('productVersion').productName')] -x [variables(parameters('productVersion').productMajorVersion')] -y [variables(parameters('productVersion').productMinorVersion')] > /tmp/whd-install.log"
         }
       }
     }
@@ -316,17 +328,17 @@
       "type": "string",
       "value": "[parameters('adminUsername')]"
     },
-    "productRPMFile": {
+    "productMajorVersion": {
       "type": "string",
-      "value": "[parameters('productRPMFile')]"
+      "value": "[variables(parameters('productVersion').productMajorVersion')]"
     },
-    "productGZIPFile": {
+    "productMinorVersion": {
       "type": "string",
-      "value": "[parameters('productGZIPFile')]"
+      "value": "[variables(parameters('productVersion').productMinorVersion')]"
     },
-    "productDownloadURL": {
+    "productName": {
       "type": "string",
-      "value": "[parameters('productDownloadURL')]"
+      "value": "[variables(parameters('productVersion').productName')]"
     }
   }
 }
