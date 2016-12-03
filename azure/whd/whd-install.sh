@@ -87,7 +87,10 @@ cd /tmp
 
 wget $PRODUCT_DOWNLOAD_URL -nv
 gunzip $PRODUCT_GZIP_FILE
-yum install -y -v $PRODUCT_RPM_FILE > /tmp/whd_install_rpm.log
+
+yum clean all
+yum update -y
+yum install -y -v $PRODUCT_RPM_FILE 
 
 WHD_HOME=$(ls -d /usr/local/webhelpdesk)
 
@@ -101,4 +104,4 @@ then
 fi
 sed -i 's/^PRIVILEGED_NETWORKS=[[:space:]]*$/PRIVILEGED_NETWORKS=0.0.0.0\/0/g' $WHD_HOME/conf/whd.conf
 
-$WHD_HOME/whd start >> /tmp/whd_install_rpm.log
+$WHD_HOME/whd start
