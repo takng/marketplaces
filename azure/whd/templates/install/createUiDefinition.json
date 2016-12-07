@@ -1,0 +1,38 @@
+{
+  "handler": "Microsoft.Compute.MultiVm",
+  "version": "0.0.1-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "virtualMachineName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Virtual Machine name",
+        "toolTip": "The name of the new Virtual Machine Name.",
+        "constraints": {
+          "required": true,
+          "regex": "^[a-z0-9]{3,24}$",
+          "validationMessage": "Virtual Machine names must be between 3 and 24 characters long, and can contain only numbers and lowercase letters."
+        }
+      },
+      {
+        "name": "adminUsername",
+        "type": "Microsoft.Compute.UserNameTextBox",
+        "label": "Username",
+        "toolTip": "Admin username for the virtual machines. Same Credientials is to SSH to the box.",
+        "osPlatform": "Linux"
+      },
+      {
+        "name": "whdAdminUserName",
+        "type": "Microsoft.Compute.UserNameTextBox",
+        "label": "Username",
+        "toolTip": "WHD Admin username for the application.",
+        "osPlatform": "Linux"
+      }
+   ],
+    "outputs": {
+      "virtualMachineName": "[basics('virtualMachineName')]",
+      "adminUsername": "[basics('adminUsername')]",
+      "location": "[location()]"
+    }
+  }
+}

@@ -25,6 +25,16 @@
         "description": "Size of Virtual Machine Image"
       }
     },
+    "productVersion": {
+      "type": "string",
+      "allowedValues": [
+        "Latest",
+        "WebHelpDesk_12_5_0"
+      ],
+      "metadata": {
+        "description": "Version of Web Help Desk"
+      }
+    },
     "publicDomainName": {
       "defaultValue": "whd",
       "type": "string",
@@ -47,7 +57,7 @@
       }
     },
     "whdAdminUserName": {
-      "defaultValue": "whdadmin",
+      "defaultValue": "whd",
       "type": "string",
       "metadata": {
         "description": "WHD Database Admin User Name."
@@ -62,20 +72,37 @@
     }
   },
   "variables": {
+    "productListings": {
+      "Latest": {
+        "productName": "WebHelpDesk",
+        "productMajorVersion": "12.5.0",
+        "productMinorVersion": "1257-1"
+      },
+      "WebHelpDesk_12_5_0": {
+        "productName": "WebHelpDesk",
+        "productMajorVersion": "12.5.0",
+        "productMinorVersion": "1257-1"
+      }
+    },
+    "osType": "Linux",
+
+    "currentSelectedProduct": "[variables('productListings')[parameters('productVersion')]]",
+    "productName": "[variables('currentSelectedProduct').productName]",
+    "productMajorVersion": "[variables('currentSelectedProduct').productMajorVersion]",
+    "productMinorVersion": "[variables('currentSelectedProduct').productMinorVersion]",
 
     "resourceGroupPrefix": "[parameters('virtualMachineName')]",
     "apiVersion": "2015-05-01-preview",
     "location": "[resourceGroup().location]",
 
-    "productImagePublisher": "solarwinds",
-    "productImageOffer": "solarwinds-web-help-desk",
-    "productImageSKU": "dpa-byol",
+    "productImagePublisher": "OpenLogic",
+    "productImageOffer": "CentOS",
+    "productImageSKU": "7.2",
     "productImageVersion": "latest",
 
     "httpPort": 8081,
     "dbPort": 20293,
 
-    "osType": "linux",
     "storageAccountType": "Standard_LRS",
     "storageAccountTier": "Standard",
     "storageAccountName": "[toLower(concat(variables('resourceGroupPrefix'),'disks'))]",
@@ -108,11 +135,7 @@
       "name": "[parameters('virtualMachineName')]",
       "apiVersion": "2015-06-15",
       "location": "[variables('location')]",
-      "plan": {
-        "name": "[variables('productImageSKU')]",
-        "publisher": "[variables('productImagePublisher')]",
-        "product": "[variables('productImageOffer')]"
-      },
+
       "properties": {
         "hardwareProfile": {
           "vmSize": "[parameters('virtualMachineSize')]"
@@ -126,14 +149,22 @@
           },
           "osDisk": {
             "name": "[parameters('virtualMachineName')]",
-            "osType": "[variables('osType')]",
-            "vhd": {
-              "uri": "[concat('https', '://', variables('sourceStorageAccountName'), '.blob.core.windows.net', '/',variables('sourceStorageAccountContainerName'),'/', variables('sourceOSDiskImage'))]"
-            },
             "createOption": "FromImage",
+            "vhd": {
+              "uri": "[concat('https', '://', variables('storageAccountName'), '.blob.core.windows.net', '/',variables('storageAccountContainerName'),'/',variables('osDiskName'),'.vhd')]"
+            },
             "caching": "ReadWrite"
           },
           "dataDisks": [ ]
+        },
+        "osProfile": {
+          "computerName": "[parameters('virtualMachineName')]",
+          "adminUsername": "[parameters('adminUserName')]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": false
+          },
+          "secrets": [ ],
+          "adminPassword": "[parameters('adminPassword')]"
         },
         "networkProfile": {
           "networkInterfaces": [
@@ -267,17 +298,58 @@
       }
     },
     {
-      "comments": "Storage Account for VHDs.",
-      "type": "Microsoft.Storage/storageAccounts",
-      "kind": "Storage",
-      "name": "[variables('storageAccountName')]",
       "apiVersion": "2016-01-01",
+      "comments": "Storage Account for VHDs.",
+      "kind": "Storage",
       "location": "[variables('location')]",
-      "tags": { },
+      "name": "[variables('storageAccountName')]",
       "sku": {
         "name": "[variables('storageAccountType')]",
         "tier": "[variables('storageAccountTier')]"
+      },
+      "tags": { },
+      "type": "Microsoft.Storage/storageAccounts"
+    },
+    {
+      "name": "[concat(parameters('virtualMachineName'),'/CustomScriptForLinux')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "location": "[variables('location')]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "1.4",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [ "https://raw.githubusercontent.com/solarwinds/marketplaces/master/azure/whd/whd-install.sh" ],
+          "commandToExecute": "[concat('./whd-install.sh -p ',variables('productName'),' -x ',variables('productMajorVersion'),' -y ',variables('productMinorVersion'),' > /tmp/whd-install.log')]"
+        }
       }
     }
-  ]
+  ],
+  "outputs": {
+    "vm-fqdn": {
+      "type": "string",
+      "value": "[reference(variables('publicIPAddressName'), '2016-03-30').dnsSettings.fqdn]"
+    },
+    "adminUsername": {
+      "type": "string",
+      "value": "[parameters('adminUsername')]"
+    },
+    "productName": {
+      "type": "string",
+      "value": "[variables('productName')]"
+    },
+    "productMajorVersion": {
+      "type": "string",
+      "value": "[variables('productMajorVersion')]"
+    },
+    "productMinorVersion": {
+      "type": "string",
+      "value": "[variables('productMinorVersion')]"
+    }
+  }
 }
