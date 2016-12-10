@@ -11,6 +11,7 @@
     },
     "virtualMachineSize": {
       "type": "string",
+      "defaultValue": "Standard_A2",
       "allowedValues": [
         "Standard_A1",
         "Standard_A2",
@@ -27,6 +28,7 @@
     },
     "productVersion": {
       "type": "string",
+      "defaultValue": "Latest",
       "allowedValues": [
         "Latest",
         "WebHelpDesk_12_5_0"
@@ -42,6 +44,17 @@
         "description": "Public DNS (Domain Name) for the Web Help Desk Application. [.location.cloudapp.azure.com] will be automatically added to the Azure DNS Service."
       }
     },
+    "authenticationType": {
+      "type": "string",
+      "defaultValue": "SSH public key",
+      "allowedValues": [
+        "password",
+        "ssh public key"
+      ],
+      "metadata": {
+        "descritpion": "Type of authentication "
+      }
+    },
     "adminUserName": {
       "defaultValue": "sysadmin",
       "type": "string",
@@ -49,25 +62,17 @@
         "description": "OS Admin User Name for the Virtual Machine."
       }
     },
+    "sshKey": {
+      "type": "string",
+      "metadata": {
+        "description": "SSH rsa public key file as a string."
+      }
+    },
     "adminPassword": {
       "defaultValue": null,
       "type": "securestring",
       "metadata": {
         "description": "Password for the Virtual Machine."
-      }
-    },
-    "whdAdminUserName": {
-      "defaultValue": "whd",
-      "type": "string",
-      "metadata": {
-        "description": "WHD Database Admin User Name."
-      }
-    },
-    "whdAdminPassword": {
-      "defaultValue": null,
-      "type": "securestring",
-      "metadata": {
-        "description": "WHD Database Admin Password."
       }
     }
   },
@@ -85,6 +90,7 @@
       }
     },
     "osType": "Linux",
+    "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
 
     "currentSelectedProduct": "[variables('productListings')[parameters('productVersion')]]",
     "productName": "[variables('currentSelectedProduct').productName]",
@@ -161,9 +167,17 @@
           "computerName": "[parameters('virtualMachineName')]",
           "adminUsername": "[parameters('adminUserName')]",
           "linuxConfiguration": {
-            "disablePasswordAuthentication": false
+            "disablePasswordAuthentication": true,
+            "ssh": {
+              "publicKeys": [
+                {
+                  "path": "[variables('sshKeyPath')]",
+                  "keyData": "[parameters('sshKey')]"
+                }
+              ]
+            }
           },
-          "secrets": [ ],
+          "secrets": [],
           "adminPassword": "[parameters('adminPassword')]"
         },
         "networkProfile": {

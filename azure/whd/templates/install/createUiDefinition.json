@@ -4,35 +4,132 @@
   "parameters": {
     "basics": [
       {
-        "name": "virtualMachineName",
-        "type": "Microsoft.Common.TextBox",
-        "label": "Virtual Machine name",
-        "toolTip": "The name of the new Virtual Machine Name.",
-        "constraints": {
-          "required": true,
-          "regex": "^[a-z0-9]{3,24}$",
-          "validationMessage": "Virtual Machine names must be between 3 and 24 characters long, and can contain only numbers and lowercase letters."
-        }
-      },
-      {
         "name": "adminUsername",
         "type": "Microsoft.Compute.UserNameTextBox",
-        "label": "Username",
+        "label": "Virtual Machine Admin Username",
         "toolTip": "Admin username for the virtual machines. Same Credientials is to SSH to the box.",
         "osPlatform": "Linux"
       },
       {
-        "name": "whdAdminUserName",
-        "type": "Microsoft.Compute.UserNameTextBox",
-        "label": "Username",
-        "toolTip": "WHD Admin username for the application.",
+        "name": "SSHCredntials",
+        "type": "Microsoft.Compute.CredentialsCombo",
+        "label": {
+          "authenticationType": "Authentication type",
+          "password": "Password",
+          "confirmPassword": "Confirm password",
+          "sshPublicKey": "SSH public key"
+        },
+        "toolTip": {
+          "authenticationType": "",
+          "password": "",
+          "sshPublicKey": ""
+        },
+        "constraints": {
+          "required": true
+        },
+        "options": {
+          "hideConfirmation": false
+        },
         "osPlatform": "Linux"
       }
-   ],
+    ],
+    "steps": [
+      {
+        "name": "whdInstanceConfig",
+        "label": "Web Help Desk Instance settings",
+        "subLabel": {
+          "preValidation": "Configure the Web Help Desk Instance",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Web Help Desk Instance settings",
+        "elements": [
+          {
+            "name": "productVersion",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Product Version",
+            "toolTip": "The Version of the Application to be installed.",
+            "constraints": {
+              "allowedValues": [
+                {
+                  "label": "Latest",
+                  "value": "Latest"
+                },
+                {
+                  "label": "WebHelpDesk_12_5_0",
+                  "value": "WebHelpDesk_12_5_0"
+                }
+              ]
+            }
+          },
+          {
+            "name": "publicDomainName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Public DNS name",
+            "toolTip": "The Public DNS Name for the application.",
+            "constraints": {
+              "required": true,
+              "regex": "^[a-zA-Z0-9]{3,24}$",
+              "validationMessage": "DNS Machine names must be between 3 and 24 characters long, and can contain only numbers and letters."
+            }
+          },
+          {
+            "name": "virtualMachineName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Virtual Machine name",
+            "toolTip": "The name of the new Virtual Machine Name.",
+            "constraints": {
+              "required": true,
+              "regex": "^[a-zA-Z0-9]{3,24}$",
+              "validationMessage": "Virtual Machine names must be between 3 and 24 characters long, and can contain only numbers and letters."
+            }
+          },
+          {
+            "name": "virtualMachineSize",
+            "type": "Microsoft.Compute.SizeSelector",
+            "label": "Virtual machine size",
+            "toolTip": "The size of virtual machine to provision for the application.",
+            "recommendedSizes": [
+              "Standard_A1",
+              "Standard_A2",
+              "Standard_A3",
+              "Standard_A4",
+              "Standard_D1",
+              "Standard_D2",
+              "Standard_D3",
+              "Standard_D4"
+            ],
+            "constraints": {
+              "allowedSizes": [
+                "Standard_A1",
+                "Standard_A2",
+                "Standard_A3",
+                "Standard_A4",
+                "Standard_D1",
+                "Standard_D2",
+                "Standard_D3",
+                "Standard_D4"
+              ]
+            },
+            "osPlatform": "Linux",
+            "imageReference": {
+              "publisher": "OpenLogic",
+              "offer": "CentOS",
+              "sku": "7.2",
+              "version": "Latest"
+            }
+          }
+        ]
+      }
+    ],
     "outputs": {
-      "virtualMachineName": "[basics('virtualMachineName')]",
+      "virtualMachineName": "[steps('whdInstanceConfig').virtualMachineName]",
+      "virtualMachineSize": "[steps('whdInstanceConfig').virtualMachineSize]",
+      "productVersion": "[steps('whdInstanceConfig').productVersion]",
+      "publicDomainName": "[steps('whdInstanceConfig').publicDomainName]",
       "adminUsername": "[basics('adminUsername')]",
-      "location": "[location()]"
+      "authenticationType": "[basics('SSHCredntials').authenticationType]",
+      "adminPassword": "[basics('SSHCredntials').password]",
+      "sshKey": "[basics('SSHCredntials').sshPublicKey]"
     }
   }
 }

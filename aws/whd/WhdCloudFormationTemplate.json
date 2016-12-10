@@ -6,7 +6,7 @@
       "ParameterGroups": [
         {
           "Label": { "default": "WHD Server Configuration" },
-          "Parameters": [ "InstanceType", "HttpsPort", "AccessLocation", "KeyName" ]
+          "Parameters": [ "InstanceType", "VpcId", "HttpsPort", "AccessLocation", "KeyName" ]
         },
         {
           "Label": { "default": "WHD Repository Database Configuration" },
@@ -23,7 +23,8 @@
       ],
       "ParameterLabels": {
         "InstanceType": { "default": "Instance Type" },
-        "AccessLocation": { "default": "HTTPS and SSH Access" },
+        "VpcId": { "default": "Virtual Private Cloud Id" },
+        "AccessLocation": { "default": "SSH Access" },
         "KeyName": { "default": "Key Pair Name" },
         "HttpsPort": { "default": "WHD Application SSL Port" },
         "DatabaseEmbedded": { "default": "Embedded PostgreSQL" },
@@ -69,6 +70,13 @@
       "Default": "t2.micro",
       "AllowedValues": [ "t2.micro", "t2.small", "t2.medium", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge" ],
       "ConstraintDescription": "must be a valid EC2 instance type."
+    },
+
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id",
+      "Description": "VPC for Application deployment.",
+      "AllowedPattern": "vpc-(\\w{8})",
+      "ConstraintDescription": "must be a valid AWS VPC ID (vpc-xxxxxxx}"
     },
 
     "HttpsPort": {
@@ -199,65 +207,10 @@
   },
 
   "Mappings": {
-    "AWSInstanceType2Arch": {
-      "t1.micro": { "Arch": "PV64" },
-      "t2.micro": { "Arch": "HVM64" },
-      "t2.small": { "Arch": "HVM64" },
-      "t2.medium": { "Arch": "HVM64" },
-      "m1.small": { "Arch": "PV64" },
-      "m1.medium": { "Arch": "PV64" },
-      "m1.large": { "Arch": "PV64" },
-      "m1.xlarge": { "Arch": "PV64" },
-      "m2.xlarge": { "Arch": "PV64" },
-      "m2.2xlarge": { "Arch": "PV64" },
-      "m2.4xlarge": { "Arch": "PV64" },
-      "m3.medium": { "Arch": "HVM64" },
-      "m3.large": { "Arch": "HVM64" },
-      "m3.xlarge": { "Arch": "HVM64" },
-      "m3.2xlarge": { "Arch": "HVM64" },
-      "c1.medium": { "Arch": "PV64" },
-      "c1.xlarge": { "Arch": "PV64" },
-      "c3.large": { "Arch": "HVM64" },
-      "c3.xlarge": { "Arch": "HVM64" },
-      "c3.2xlarge": { "Arch": "HVM64" },
-      "c3.4xlarge": { "Arch": "HVM64" },
-      "c3.8xlarge": { "Arch": "HVM64" },
-      "g2.2xlarge": { "Arch": "HVMG2" },
-      "r3.large": { "Arch": "HVM64" },
-      "r3.xlarge": { "Arch": "HVM64" },
-      "r3.2xlarge": { "Arch": "HVM64" },
-      "r3.4xlarge": { "Arch": "HVM64" },
-      "r3.8xlarge": { "Arch": "HVM64" },
-      "i2.xlarge": { "Arch": "HVM64" },
-      "i2.2xlarge": { "Arch": "HVM64" },
-      "i2.4xlarge": { "Arch": "HVM64" },
-      "i2.8xlarge": { "Arch": "HVM64" },
-      "hi1.4xlarge": { "Arch": "HVM64" },
-      "hs1.8xlarge": { "Arch": "HVM64" },
-      "cr1.8xlarge": { "Arch": "HVM64" },
-      "cc2.8xlarge": { "Arch": "HVM64" }
-    },
-
-    "AWSRegionArch2AMI": {
-      "us-west-2": {
-        "PV64": "ami-bfd877df",
-        "HVM64": "ami-bfd877df",
-        "HVMG2": "ami-bfd877df"
-      },
-      "us-east-1": {
-        "PV64": "ami-a00636b7",
-        "HVM64": "ami-a00636b7",
-        "HVMG2": "ami-a00636b7"
-      },
-      "ap-south-1": {
-        "PV64": "ami-1ffc8970",
-        "HVM64": "ami-1ffc8970",
-        "HVMG2": "ami-1ffc8970"
-      }
-    },
-    "RegionMap": {
+    "AWSRegionToAMIMap": {
       "us-west-2": { "AMI": "ami-bfd877df" },
-      "us-east-1": { "AMI": "ami-a00636b7" }
+      "us-east-1": { "AMI": "ami-a00636b7" },
+      "ap-south-1": { "AMI": "ami-1ffc8970" }
     },
     "DatabaseEmbeddedToDBEngine": {
       "DatabaseEmbedded": {
@@ -274,6 +227,19 @@
   },
 
   "Resources": {
+
+    "WHDDBParameterGroup": {
+      "Type": "AWS::RDS::DBParameterGroup",
+      "Condition": "CreateRDSCondition",
+      "Properties": {
+        "Description": "CloudFormation Custom Parameter Group for Version update",
+        "Family": "mysql5.6",
+        "Parameters": {
+          "log_bin_trust_function_creators": "1"
+        }
+      }
+    },
+
     "WHDRepositoryDatabase": {
       "Type": "AWS::RDS::DBInstance",
       "Condition": "CreateRDSCondition",
@@ -288,25 +254,27 @@
         "Port": { "Ref": "DatabasePort" },
         "DBInstanceClass": { "Ref": "DatabaseClass" },
         "DBInstanceIdentifier": { "Ref": "DatabaseHost" },
+        "DBParameterGroupName": { "Ref": "WHDDBParameterGroup" },
         "AllocatedStorage": { "Ref": "DatabaseAllocatedStorage" },
         "MasterUsername": { "Ref": "DatabaseAdminUser" },
         "MasterUserPassword": { "Ref": "DatabaseAdminPassword" },
         "VPCSecurityGroups": [ { "Fn::GetAtt": [ "WHDRepositoryDatabaseSecurityGroup", "GroupId" ] } ]
       },
 
-      "DependsOn": [ "WHDRepositoryDatabaseSecurityGroup" ]
+      "DependsOn": [ "WHDRepositoryDatabaseSecurityGroup", "WHDDBParameterGroup" ]
     },
 
     "WHDRepositoryDatabaseSecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "Enables database access from WHD server to Database Repository",
+        "VpcId": { "Ref": "VpcId" },
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
             "FromPort": { "Ref": "DatabasePort" },
             "ToPort": { "Ref": "DatabasePort" },
-            "SourceSecurityGroupName": { "Ref": "WHDServerSecurityGroup" }
+            "SourceSecurityGroupId": { "Ref": "WHDServerSecurityGroup" }
           },
           {
             "IpProtocol": "tcp",
@@ -323,12 +291,13 @@
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "Enables HTTPS (443) and SSH (22) access",
+        "VpcId": { "Ref": "VpcId" },
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
             "FromPort": "443",
             "ToPort": "443",
-            "CidrIp": { "Ref": "AccessLocation" }
+            "CidrIp": "0.0.0.0/0"
           },
           {
             "IpProtocol": "tcp",
@@ -340,7 +309,7 @@
             "IpProtocol": "tcp",
             "FromPort": { "Ref": "HttpsPort" },
             "ToPort": { "Ref": "HttpsPort" },
-            "CidrIp": { "Ref": "AccessLocation" }
+            "CidrIp": "0.0.0.0/0"
           }
         ]
       }
@@ -567,7 +536,7 @@
                       "if [ -f $WHD_HOME/conf/whd.conf ] \n",
                       "then\n",
                       "  echo Modifying Privileged network .. calling SED Commands\n",
-                      "  sed -i 's/^PRIVILEGED_NETWORKS=[[:space:]]*$/PRIVILEGED_NETWORKS=0.0.0.0\/0/g' $WHD_HOME/conf/whd.conf\n",
+                      "  sed -i 's/^PRIVILEGED_NETWORKS=[[:space:]]*$/PRIVILEGED_NETWORKS=0.0.0.0/0/g' $WHD_HOME/conf/whd.conf\n",
                       "fi\n",
                       "echo Starting WHD...in $NUMBER_OF_ATTEMPTS tries\n",
                       "$WHD_HOME/whd restart ",
@@ -686,19 +655,21 @@
       "Properties": {
         "ImageId": {
           "Fn::FindInMap": [
-            "AWSRegionArch2AMI",
+            "AWSRegionToAMIMap",
             { "Ref": "AWS::Region" },
-            {
-              "Fn::FindInMap": [
-                "AWSInstanceType2Arch",
-                { "Ref": "InstanceType" },
-                "Arch"
-              ]
-            }
+            "AMI"
           ]
         },
         "InstanceType": { "Ref": "InstanceType" },
-        "SecurityGroups": [ { "Ref": "WHDServerSecurityGroup" } ],
+
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": [
+              "WHDServerSecurityGroup",
+              "GroupId"
+            ]
+          }
+        ],
         "KeyName": { "Ref": "KeyName" },
         "Tags": [
           {
