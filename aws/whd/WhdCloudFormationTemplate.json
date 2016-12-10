@@ -208,9 +208,7 @@
 
   "Mappings": {
     "AWSRegionToAMIMap": {
-      "us-west-2": { "AMI": "ami-bfd877df" },
-      "us-east-1": { "AMI": "ami-a00636b7" },
-      "ap-south-1": { "AMI": "ami-1ffc8970" }
+      "us-east-1": { "AMI": "ami-24f3f033" }
     },
     "DatabaseEmbeddedToDBEngine": {
       "DatabaseEmbedded": {
@@ -497,7 +495,6 @@
                       "\" == \"false\" ];\n",
                       "then\n",
                       "  echo \"*** installing MySQL Driver\"\n",
-                      "  yum install -y mysql-connector-java\n",
                       "if [ -f \"$JAVA_DIR/mysql-connector-java.jar\" ];\n",
                       "then\n",
                       "  cp $JAVA_DIR/mysql-connector-java.jar $WHD_HOME/bin/jre/lib/ext\n",
@@ -536,7 +533,7 @@
                       "if [ -f $WHD_HOME/conf/whd.conf ] \n",
                       "then\n",
                       "  echo Modifying Privileged network .. calling SED Commands\n",
-                      "  sed -i 's/^PRIVILEGED_NETWORKS=[[:space:]]*$/PRIVILEGED_NETWORKS=0.0.0.0/0/g' $WHD_HOME/conf/whd.conf\n",
+                      "  sed -i 's|^PRIVILEGED_NETWORKS=[[:space:]]*$|PRIVILEGED_NETWORKS=0.0.0.0/0|g' $WHD_HOME/conf/whd.conf\n",
                       "fi\n",
                       "echo Starting WHD...in $NUMBER_OF_ATTEMPTS tries\n",
                       "$WHD_HOME/whd restart ",
@@ -683,11 +680,6 @@
               "",
               [
                 "#!/bin/bash -xe\n",
-                "yum install -y python-setuptools && yum clean all",
-                "\n",
-                "# Now install cfn scripts",
-                "\n",
-                "/usr/bin/easy_install --script-dir /opt/aws/bin https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz",
                 "\n",
                 "/opt/aws/bin/cfn-init -v ",
                 " --stack ",
