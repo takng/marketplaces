@@ -230,6 +230,12 @@
       "Type": "AWS::RDS::DBParameterGroup",
       "Condition": "CreateRDSCondition",
       "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Ref": "AWS::StackName" }
+          }
+        ],
         "Description": "CloudFormation Custom Parameter Group for Version update",
         "Family": "mysql5.6",
         "Parameters": {
@@ -242,6 +248,12 @@
       "Type": "AWS::RDS::DBInstance",
       "Condition": "CreateRDSCondition",
       "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Ref": "AWS::StackName" }
+          }
+        ],
         "Engine": {
           "Fn::FindInMap": [
             "DatabaseEmbeddedToDBEngine",
@@ -267,6 +279,12 @@
       "Properties": {
         "GroupDescription": "Enables database access from WHD server to Database Repository",
         "VpcId": { "Ref": "VpcId" },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Ref": "AWS::StackName" }
+          }
+        ],
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
@@ -289,6 +307,12 @@
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "Enables HTTPS (443) and SSH (22) access",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Ref": "AWS::StackName" }
+          }
+        ],
         "VpcId": { "Ref": "VpcId" },
         "SecurityGroupIngress": [
           {
@@ -526,9 +550,7 @@
                       "if [ ! -f $WHD_HOME/conf/whd.conf ] \n",
                       "then\n",
                       "  echo Creating Conf File ..Calling whd Start Commands\n",
-                      "   $WHD_HOME/whd start ",
-                      { "Ref": "HttpsPort" },
-                      "\n",
+                      "  cp $WHD_HOME/conf/whd.conf.orig $WHD_HOME/conf/whd.conf\n ",
                       "fi\n",
                       "if [ -f $WHD_HOME/conf/whd.conf ] \n",
                       "then\n",
@@ -575,7 +597,17 @@
                       "echo \"Running : $0\"\n",
                       "WHD_HOME=$(ls -d /usr/local/webhelpdesk)\n",
                       "echo \"WHD_HOME: $WHD_HOME\"\n",
+                      "sleep 15\n",
                       "# Check if Instance Started\n",
+                      "WHD_RESPONSE=`ps -ef | grep -ic tomcat`\n",
+                      "if [ $WHD_RESPONSE -gt 0 ];\n",
+                      "then\n",
+                      "  echo Tomcat was running, go ahead with Curl\n",
+                      "  break;\n",
+                      "else\n",
+                      "  echo WHD was NOT running on first test: sleeping for 15 seconds\n",
+                      "  sleep 15\n",
+                      "fi\n",
                       "if [ -f $WHD_HOME/conf/whd.conf ] \n",
                       "then\n",
                       "  echo WHD Started calling CURL Commands\n",

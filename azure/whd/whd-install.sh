@@ -102,6 +102,6 @@ if [ ! -f $WHD_HOME/conf/whd.conf ]
 then
    cp $WHD_HOME/conf/whd.conf.orig $WHD_HOME/conf/whd.conf
 fi
-sed -i 's/^PRIVILEGED_NETWORKS=[[:space:]]*$/PRIVILEGED_NETWORKS=0.0.0.0\/0/g' $WHD_HOME/conf/whd.conf
+sed -i 's|^PRIVILEGED_NETWORKS=[[:space:]]*$|PRIVILEGED_NETWORKS=0.0.0.0\/0|g' $WHD_HOME/conf/whd.conf
 
 $WHD_HOME/whd start
