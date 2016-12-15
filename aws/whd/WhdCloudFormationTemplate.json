@@ -6,7 +6,7 @@
       "ParameterGroups": [
         {
           "Label": { "default": "WHD Server Configuration" },
-          "Parameters": [ "InstanceType", "VpcId", "HttpsPort", "AccessLocation", "KeyName" ]
+          "Parameters": [ "InstanceType", "VpcId", "Subnets", "HttpsPort", "AccessLocation", "KeyName" ]
         },
         {
           "Label": { "default": "WHD Repository Database Configuration" },
@@ -24,6 +24,7 @@
       "ParameterLabels": {
         "InstanceType": { "default": "Instance Type" },
         "VpcId": { "default": "Virtual Private Cloud Id" },
+        "Subnets": { "default": "Subnets" },
         "AccessLocation": { "default": "SSH Access" },
         "KeyName": { "default": "Key Pair Name" },
         "HttpsPort": { "default": "WHD Application SSL Port" },
@@ -68,7 +69,7 @@
       "Description": "WHD Server EC2 instance type",
       "Type": "String",
       "Default": "t2.micro",
-      "AllowedValues": [ "t2.micro", "t2.small", "t2.medium", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge" ],
+      "AllowedValues": [ "t2.micro", "t2.small", "t2.medium", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "c3.large", "c3.xlarge", "c3.2xlarge", "r3.large" ],
       "ConstraintDescription": "must be a valid EC2 instance type."
     },
 
@@ -78,7 +79,11 @@
       "AllowedPattern": "vpc-(\\w{8})",
       "ConstraintDescription": "must be a valid AWS VPC ID (vpc-xxxxxxx}"
     },
-
+    "Subnets": {
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "Description": "Subnets in which WHD server and [RDS instance] should run (at least 2 subnets in the selected Virtual Private Cloud)",
+      "ConstraintDescription": "must be a list of an existing subnets in the selected Virtual Private Cloud."
+    },
     "HttpsPort": {
       "Default": "8081",
       "Description": "WHD Application SSL port",
@@ -132,7 +137,6 @@
     },
 
     "DatabaseAdminPassword": {
-      "Default": "admin123",
       "NoEcho": "true",
       "Description": "WHD Repository database admin account password",
       "Type": "String",
@@ -177,7 +181,6 @@
     },
 
     "WHDPassword": {
-      "Default": "admin123",
       "NoEcho": "true",
       "Description": "WHD Application admin account password",
       "Type": "String",
@@ -208,7 +211,16 @@
 
   "Mappings": {
     "AWSRegionToAMIMap": {
-      "us-east-1": { "AMI": "ami-24f3f033" }
+      "us-east-1": { "AMI": "ami-24f3f033" },
+      "us-east-2": { "AMI": "ami-24f3f033" },
+      "us-west-1": { "AMI": "ami-24f3f033" },
+      "eu-central-1": { "AMI": "ami-24f3f033" },
+      "eu-west-1": { "AMI": "ami-24f3f033" },
+      "ap-southeast-1": { "AMI": "ami-24f3f033" },
+      "ap-southeast-2": { "AMI": "ami-24f3f033" },
+      "ap-northeast-1": { "AMI": "ami-24f3f033" },
+      "ap-south-1": { "AMI": "ami-24f3f033" },
+      "sa-east-1": { "AMI": "ami-24f3f033" }
     },
     "DatabaseEmbeddedToDBEngine": {
       "DatabaseEmbedded": {
@@ -244,6 +256,23 @@
       }
     },
 
+    "DBSubnetGroup": {
+      "Type": "AWS::RDS::DBSubnetGroup",
+      "Condition": "CreateRDSCondition",
+      "Properties": {
+        "DBSubnetGroupDescription": "Subnets available for the RDS DB Instance",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Ref": "AWS::StackName" }
+          }
+        ],
+        "SubnetIds": {
+          "Ref": "Subnets"
+        }
+      }
+    },
+
     "WHDRepositoryDatabase": {
       "Type": "AWS::RDS::DBInstance",
       "Condition": "CreateRDSCondition",
@@ -265,13 +294,16 @@
         "DBInstanceClass": { "Ref": "DatabaseClass" },
         "DBInstanceIdentifier": { "Ref": "DatabaseHost" },
         "DBParameterGroupName": { "Ref": "WHDDBParameterGroup" },
+        "DBSubnetGroupName": {
+          "Ref": "DBSubnetGroup"
+        },
         "AllocatedStorage": { "Ref": "DatabaseAllocatedStorage" },
         "MasterUsername": { "Ref": "DatabaseAdminUser" },
         "MasterUserPassword": { "Ref": "DatabaseAdminPassword" },
         "VPCSecurityGroups": [ { "Fn::GetAtt": [ "WHDRepositoryDatabaseSecurityGroup", "GroupId" ] } ]
       },
 
-      "DependsOn": [ "WHDRepositoryDatabaseSecurityGroup", "WHDDBParameterGroup" ]
+      "DependsOn": [ "WHDRepositoryDatabaseSecurityGroup", "WHDDBParameterGroup", "DBSubnetGroup" ]
     },
 
     "WHDRepositoryDatabaseSecurityGroup": {
@@ -699,6 +731,14 @@
             ]
           }
         ],
+        "SubnetId": {
+          "Fn::Select": [
+            "0",
+            {
+              "Ref": "Subnets"
+            }
+          ]
+        },
         "KeyName": { "Ref": "KeyName" },
         "Tags": [
           {
