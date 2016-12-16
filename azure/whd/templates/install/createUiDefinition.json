@@ -8,21 +8,35 @@
         "type": "Microsoft.Compute.UserNameTextBox",
         "label": "Virtual Machine Admin Username",
         "toolTip": "Admin username for the virtual machines. Same Credientials is to SSH to the box.",
-        "osPlatform": "Linux"
+        "osPlatform": "Linux",
+        "constraints": {
+          "required": true
+        }
+      },
+      {
+        "name": "authenticationType",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Authentication type",
+        "toolTip": "The Authentication Type for the Virtual Machine.",
+        "defaultValue": "password",
+        "constraints": {
+          "allowedValues": [
+            {
+              "label": "Password",
+              "value": "password"
+            }
+          ]
+        }
       },
       {
         "name": "SSHCredntials",
         "type": "Microsoft.Compute.CredentialsCombo",
         "label": {
-          "authenticationType": "Authentication type",
           "password": "Password",
-          "confirmPassword": "Confirm password",
-          "sshPublicKey": "SSH public key"
+          "confirmPassword": "Confirm password"
         },
         "toolTip": {
-          "authenticationType": "",
-          "password": "",
-          "sshPublicKey": ""
+          "password": ""
         },
         "constraints": {
           "required": true
@@ -30,7 +44,7 @@
         "options": {
           "hideConfirmation": false
         },
-        "osPlatform": "Linux"
+        "osPlatform": "Windows"
       }
     ],
     "steps": [
@@ -48,6 +62,7 @@
             "type": "Microsoft.Common.DropDown",
             "label": "Product Version",
             "toolTip": "The Version of the Application to be installed.",
+            "defaultValue": "Latest",
             "constraints": {
               "allowedValues": [
                 {
@@ -126,10 +141,10 @@
       "virtualMachineSize": "[steps('whdInstanceConfig').virtualMachineSize]",
       "productVersion": "[steps('whdInstanceConfig').productVersion]",
       "publicDomainName": "[steps('whdInstanceConfig').publicDomainName]",
+      "authenticationType": "[basics('authenticationType')]",
       "adminUsername": "[basics('adminUsername')]",
-      "authenticationType": "[basics('SSHCredntials').authenticationType]",
-      "adminPassword": "[basics('SSHCredntials').password]",
-      "sshKey": "[basics('SSHCredntials').sshPublicKey]"
+      "adminPassword": "[basics('SSHCredntials').password]"
     }
   }
 }
+

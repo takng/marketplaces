@@ -46,10 +46,9 @@
     },
     "authenticationType": {
       "type": "string",
-      "defaultValue": "SSH public key",
+      "defaultValue": "password",
       "allowedValues": [
-        "password",
-        "ssh public key"
+        "password"
       ],
       "metadata": {
         "descritpion": "Type of authentication "
@@ -62,14 +61,8 @@
         "description": "OS Admin User Name for the Virtual Machine."
       }
     },
-    "sshKey": {
-      "type": "string",
-      "metadata": {
-        "description": "SSH rsa public key file as a string."
-      }
-    },
+
     "adminPassword": {
-      "defaultValue": null,
       "type": "securestring",
       "metadata": {
         "description": "Password for the Virtual Machine."
@@ -91,6 +84,30 @@
     },
     "osType": "Linux",
     "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
+    "sshPublicKey": "",
+    "osProfile": "[variables(concat('osProfile', parameters('authenticationType')))]",
+
+    "osProfilepassword": {
+      "adminPassword": "[parameters('adminPassword')]",
+      "adminUsername": "[parameters('adminUserName')]",
+      "computerName": "[parameters('virtualMachineName')]"
+    },
+    "osProfilesshPublicKey": {
+      "adminUsername": "[parameters('adminUserName')]",
+      "adminPassword": "[parameters('adminPassword')]",
+      "computerName": "[parameters('virtualMachineName')]",
+      "linuxConfiguration": {
+        "disablePasswordAuthentication": "true",
+        "ssh": {
+          "publicKeys": [
+            {
+              "keyData": "[variables('sshPublicKey')]",
+              "path": "[variables('sshKeyPath')]"
+            }
+          ]
+        }
+      }
+    },
 
     "currentSelectedProduct": "[variables('productListings')[parameters('productVersion')]]",
     "productName": "[variables('currentSelectedProduct').productName]",
@@ -161,25 +178,9 @@
             },
             "caching": "ReadWrite"
           },
-          "dataDisks": [ ]
+          "dataDisks": []
         },
-        "osProfile": {
-          "computerName": "[parameters('virtualMachineName')]",
-          "adminUsername": "[parameters('adminUserName')]",
-          "linuxConfiguration": {
-            "disablePasswordAuthentication": true,
-            "ssh": {
-              "publicKeys": [
-                {
-                  "path": "[variables('sshKeyPath')]",
-                  "keyData": "[parameters('sshKey')]"
-                }
-              ]
-            }
-          },
-          "secrets": [],
-          "adminPassword": "[parameters('adminPassword')]"
-        },
+        "osProfile": "[variables('osProfile')]",
         "networkProfile": {
           "networkInterfaces": [
             {
