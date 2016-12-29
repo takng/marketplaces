@@ -48,7 +48,7 @@
 
     "Subnets": {
       "Type": "List<AWS::EC2::Subnet::Id>",
-      "Description": "Subnets in which WHD server and [RDS instance] should run (at least 2 subnets in the selected Virtual Private Cloud)",
+      "Description": "Subnets in which WHD server should run.",
       "ConstraintDescription": "must be a list of an existing subnets in the selected Virtual Private Cloud."
     },
 
@@ -56,12 +56,12 @@
       "Default": "Latest",
       "Description": "Web Help Desk version to be used for Creating AMI",
       "Type": "String",
-      "AllowedValues": [ "Latest", "WebHelpDesk_12_5_0" ],
+      "AllowedValues": [ "Latest", "WebHelpDesk-12-5-0" ],
       "ConstraintDescription": "must select a valid Web Help Desk Version."
     },
     
     "AccessLocation": {
-      "Description": " The IP address range that can be used to SSH to the WHD Server instance and RDS if available",
+      "Description": " The IP address range that can be used to SSH to the WHD Server instance",
       "Type": "String",
       "MinLength": "9",
       "MaxLength": "18",
@@ -83,7 +83,7 @@
         "ProductMajorVersion": "12.5.0",
         "ProductMinorVersion": "1257-1"
       },
-      "WebHelpDesk_12_5_0": {
+      "WebHelpDesk-12-5-0": {
         "ProductName": "WebHelpDesk",
         "ProductMajorVersion": "12.5.0",
         "ProductMinorVersion": "1257-1"
@@ -168,7 +168,7 @@
                 {
                   "Fn::FindInMap": [
                     "ProductInformation",
-                    { "Ref": "AWS::ProductVersion" },
+                    { "Ref": "ProductVersion" },
                     "ProductName"
                   ]
                 },
@@ -176,19 +176,26 @@
                 {
                   "Fn::FindInMap": [
                     "ProductInformation",
-                    { "Ref": "AWS::ProductVersion" },
-                    "productMajorVersion"
+                    { "Ref": "ProductVersion" },
+                    "ProductMajorVersion"
                   ]
                 },
                 " -y ",
                 {
                   "Fn::FindInMap": [
                     "ProductInformation",
-                    { "Ref": "AWS::ProductVersion" },
-                    "productMinorVersion"
+                    { "Ref": "ProductVersion" },
+                    "ProductMinorVersion"
                   ]
                 },
                 " > /tmp/whd-install.log",
+                "\n",
+                "/opt/aws/bin/cfn-signal -e $? ",
+                " --stack ",
+                { "Ref": "AWS::StackId" },
+                " --resource WHDServer ",
+                " --region ",
+                { "Ref": "AWS::Region" },
                 "\n"
               ]
             ]
@@ -208,6 +215,9 @@
     },
     "StackId": {
       "Value": { "Ref": "AWS::StackId" }
+    },
+    "ProductVersion": {
+      "Value": { "Ref": "ProductVersion" }
     },
     "WHDRegion": {
       "Value": { "Ref": "AWS::Region" }
