@@ -83,8 +83,6 @@ then
    usage;
 fi
 
-cd /tmp
-
 wget $PRODUCT_DOWNLOAD_URL -nv
 gunzip $PRODUCT_GZIP_FILE
 
