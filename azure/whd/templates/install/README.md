@@ -21,7 +21,43 @@ Resources
 
 The values for the properties will be passed from the template. There are other values required to be configured but they are not mandatory for this step and user will need to configure them after running the application using the Setup menu.
 
-The REST call is a Http post to https://publicdns/helpdesk/WebObjects/Helpdesk.woa/ra/configuration.json?uniqueId={uniqueId}
+The REST call is a Http post to https://publicdns:port/helpdesk/WebObjects/Helpdesk.woa/ra/configuration.json?uniqueId={uniqueId}
+
+### Self Installer Script
+
+```sh
+#!/bin/bash
+#
+# Run whd-install.sh
+#
+# This script will attempt to download the specified version of WebHelpDesk from download.solarwinds.com
+# following paths:
+#   
+#   Parameters
+#   ----------
+#    ProductName -n --product-name
+#    ProductMajorVersion -x --major-version
+#    ProductMinorVersion -y --minor-version
+#    help -h --help
+
+usage()
+{
+echo This script will attempt to download the specified version of WebHelpDesk from download.solarwinds.com
+echo following paths:
+echo
+echo   "Usage: `basename $0` -p|--product-name productName -x|--major-version x.x.x -y|--minor-version [y.y] -h|--help"
+echo
+echo   Parameters
+echo   ----------
+echo   ProductName -n --product-name
+echo   ProductMajorVersion -x --major-version
+echo   ProductMinorVersion -y --minor-version
+echo   help -h --help
+echo
+exit 1;
+}
+```
+
 
 ####**Pros
 

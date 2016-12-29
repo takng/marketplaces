@@ -339,7 +339,7 @@
         "typeHandlerVersion": "1.4",
         "autoUpgradeMinorVersion": true,
         "settings": {
-          "fileUris": [ "https://raw.githubusercontent.com/solarwinds/marketplaces/master/azure/whd/whd-install.sh" ],
+          "fileUris": [ "https://raw.githubusercontent.com/solarwinds/marketplaces/master/azure/whd/whd-install.sh", "https://raw.githubusercontent.com/solarwinds/marketplaces/master/azure/whd/whd-start.sh" ],
           "commandToExecute": "[concat('./whd-install.sh -p ',variables('productName'),' -x ',variables('productMajorVersion'),' -y ',variables('productMinorVersion'),' > /tmp/whd-install.log')]"
         }
       }

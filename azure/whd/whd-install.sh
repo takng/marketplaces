@@ -92,16 +92,22 @@ yum clean all
 yum update -y
 yum install -y -v $PRODUCT_RPM_FILE 
 
+if [ -f "$PRODUCT_RPM_FILE" ]
+then
+   rm -f $PRODUCT_RPM_FILE
+fi
+
 WHD_HOME=$(ls -d /usr/local/webhelpdesk)
 
 echo "WHD_HOME: $WHD_HOME"
 
-# Check if Instance Started
+echo "WHD Installed Successfully"
 
-if [ ! -f $WHD_HOME/conf/whd.conf ] 
+if [ -f "./whd-start.sh" ]
 then
-   cp $WHD_HOME/conf/whd.conf.orig $WHD_HOME/conf/whd.conf
+  echo Starting Web Help Desk......
+  chmod 755 ./whd-start.sh
+  sh ./whd-start.sh
+else
+  echo Skipping Start Web Help Desk....
 fi
-sed -i 's|^PRIVILEGED_NETWORKS=[[:space:]]*$|PRIVILEGED_NETWORKS=0.0.0.0\/0|g' $WHD_HOME/conf/whd.conf
-
-$WHD_HOME/whd start
