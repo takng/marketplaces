@@ -107,5 +107,16 @@ then
   chmod 755 ./whd-start.sh
   sh ./whd-start.sh
 else
-  echo Skipping Start Web Help Desk....
+  echo Skipping Start Web Help Desk.... This will be removed 
+  if [ -f "$WHD_HOME" ]
+  then
+    # Check if Instance Started
+
+    if [ ! -f $WHD_HOME/conf/whd.conf ] 
+    then
+      cp $WHD_HOME/conf/whd.conf.orig $WHD_HOME/conf/whd.conf
+    fi
+    sed -i 's|^PRIVILEGED_NETWORKS=[[:space:]]*$|PRIVILEGED_NETWORKS=0.0.0.0\/0|g' $WHD_HOME/conf/whd.conf
+    $WHD_HOME/whd start
+  fi
 fi
