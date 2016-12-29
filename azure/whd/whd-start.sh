@@ -4,7 +4,7 @@ WHD_HOME=$(ls -d /usr/local/webhelpdesk)
 
 echo "WHD_HOME: $WHD_HOME"
 
-if [ -f "$WHD_HOME" ]
+if [ -d "$WHD_HOME" ]
 then
   # Check if Instance Started
 
