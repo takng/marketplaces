@@ -1,8 +1,8 @@
-WHD - Market Place Install using Azure Resource Group Template using VHD Image and self installer script
+WHD - Marketplace Install using Azure Resource Group Template using VHD Image and self installer script
 ---------------------------------------------------------------------
 
 # Purpose
-The primary purpose of the document is to explain the steps involved in moving Web Help Desk to Azure Cloud. This could be first step in exploring the feasibility of moving other products (related and non-related) to Azure Cloud to cut down the build and deploy time for products that are under maintenance. Link for the [Github Azure Markerplace](https://github.com/solarwinds/marketplaces/tree/master/azure/whd)
+The primary purpose of the document is to explain the steps involved in moving Web Help Desk to Azure Cloud. This could be first step in exploring the feasibility of moving other products (related and non-related) to Azure Cloud to cut down the build and deploy time for products that are under maintenance. 
 
 # Objective
 The initial objective was to create an Hyper-V VHD Disks  with preinstalled Web Help desk configured and ready to go with the embedded PostgreSQL just like how DPA is being sold at Azure marker place. Currently, WHD Build process already creates Hyper-V VHD Disks with CentOS as the VM operation system. The second step is to port it to Marketplace using Azure SQL DB or MySQL on Cloud. The deployment on Azure cloud uses ARM (Azure Resource Manager) template along with ARM Cli or Powershell cmdlets to upload VHD Disks on to the Azure Storage Account. Currently, DPA uses this approach to launch Azure VM from VHD image. The ARM template source can be found [here](https://github.com/solarwinds/marketplaces/blob/master/azure/whd/templates/template.json)
