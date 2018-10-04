@@ -7,6 +7,23 @@ The primary purpose of the document is to explain the steps involved in moving W
 # Objective
 The initial objective was to create an Hyper-V VHD Disks  with preinstalled Web Help desk configured and ready to go with the embedded PostgreSQL just like how DPA is being sold at Azure marker place. Currently, WHD Build process already creates Hyper-V VHD Disks with CentOS as the VM operation system. The second step is to port it to Marketplace using Azure SQL DB or MySQL on Cloud. The deployment on Azure cloud uses ARM (Azure Resource Manager) template along with ARM Cli or Powershell cmdlets to upload VHD Disks on to the Azure Storage Account. Currently, DPA uses this approach to launch Azure VM from VHD image. The ARM template source can be found [here](https://github.com/solarwinds/marketplaces/blob/master/azure/whd/templates/template.json)
 
+## Requirements
+
+In the main ARM template (mainTemplate.json), there must be a parameter of the form:
+```
+   "baseUrl": {
+       "type": "string",
+       "metadata": {
+            "description": "Base URL for Marketplace",
+            "artifactsBaseUrl": ""
+        },
+       "defaultValue": "<some URL>"
+    }
+```
+The defaultValue for the URL will be this repo's URL, which during the publishing to production process will be changed to an internal Azure repo address.
+ 
+Ensure all references in the template are relative to this baseUrl. Azure Marketplace does not use absolute Urls anywhere.
+
 ## Issues
 * WHD is currently available on lot of different platforms like CentOS, Linux, Fedora, IoS, Windows. Do we need to build different instances ?
 * WHD has strong integration feature with ORION Modules for alerting, how would this be affected.
