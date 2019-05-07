@@ -1,0 +1,15 @@
+{
+	"EOC"				:			"Solarwinds-Orion-EOC-RC1.exe",
+	"IPAM"				:  			"Solarwinds-Orion-IPAM-RC1.exe",
+	"NCM"				:  			"Solarwinds-Orion-NCM-RC1.exe",
+	"NPM"				:  			"Solarwinds-Orion-NPM-RC1.exe",
+	"NTA"				:  			"Solarwinds-Orion-NTA-RC1.exe",
+	"SAM"				:			"Solarwinds-Orion-SAM-RC1.exe",
+	"SCM"				:  			"Solarwinds-Orion-SCM-RC1.exe",
+	"SRM"				:  			"Solarwinds-Orion-SRM-RC1.exe",
+	"UDT"				:  			"Solarwinds-Orion-UDT-RC1.exe",
+	"VMAN"				:  			"Solarwinds-Orion-VMAN-RC1.exe",
+	"VNQM"				:  			"Solarwinds-Orion-VNQM-RC1.exe",
+	"WPM"				:  			"Solarwinds-Orion-WPM-RC1.exe",
+	"OrionLogManager"	:  			"Solarwinds-Orion-OrionLogManager-RC1.exe"
+}

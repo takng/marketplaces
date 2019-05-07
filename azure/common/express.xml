@@ -1,0 +1,7 @@
+<SilentConfig>
+    <InstallerConfiguration>
+        <ProductsToInstall>Orion</ProductsToInstall>
+        <InstallPath>c:\Temp\OrionSetup\</InstallPath>
+        <AdvancedInstallMode>False</AdvancedInstallMode>
+    </InstallerConfiguration>
+</SilentConfig>
