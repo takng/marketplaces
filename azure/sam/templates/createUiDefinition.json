@@ -9,7 +9,7 @@
 				"type": "Microsoft.Common.InfoBox",
 				"visible": true,
 				"options": {
-					"icon": "None",
+					"icon": "Info",
 					"text": "Server & Application Monitor"
 				}
 			},
@@ -83,18 +83,7 @@
 							"password": "Provide admin password for the virtual machine"
 						},
 						"visible": true
-					}
-				]
-			},
-			{
-				"name": "OSDetails",
-				"label": "OS Details",
-				"subLabel": {
-					"preValidation": "Provide OS details",
-					"postValidation": "Done!"
-				},
-				"bladeTitle": "Settings",
-				"elements": [
+					},
 					{
 						"name": "virtualMachineSize",
 						"type": "Microsoft.Compute.SizeSelector",
@@ -109,7 +98,18 @@
 							"Standard_D64_v3"
 						],
 						"osPlatform": "Windows"
-					},
+					}
+				]
+			},
+			{
+				"name": "OSDetails",
+				"label": "Operating System Details",
+				"subLabel": {
+					"preValidation": "Provide OS details",
+					"postValidation": "Done!"
+				},
+				"bladeTitle": "Settings",
+				"elements": [
 					{
 						"name": "image",
 						"type": "Microsoft.Common.DropDown",
@@ -397,7 +397,7 @@
 			"virtualNetworkName": "[steps('NetworkSettings').virtualNetwork]",
 			"virtualMachineName": "[basics('appName')]",
 			"image": "[steps('OSDetails').image]",
-			"virtualMachineSize": "[steps('OSDetails').virtualMachineSize]",
+			"virtualMachineSize": "[steps('InfrastructureInformation').virtualMachineSize]",
 			"publicIpAddressName": "[steps('NetworkSettings').publicIpAddress.name]",
 			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",
 			"osDiskType": "[steps('OSDetails').osDiskType]",
