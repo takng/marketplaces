@@ -10,7 +10,7 @@
 				"visible": true,
 				"options": {
 					"icon": "Info",
-					"text": "Server & Application Monitor"
+					"text": "User Device Tracker"
 				}
 			},
 			{
@@ -30,7 +30,7 @@
 				"label": "Product Name",
 				"type": "Microsoft.Common.TextBox",
 				"visible": false,
-				"defaultValue": "SAM"
+				"defaultValue": "UDT"
 			}
 		],
 		"steps": [
@@ -113,7 +113,7 @@
 							"text": "Recommended Size",
 							"link": {
 								"label": "Learn more",
-								"uri": "https://documentation.solarwinds.com/en/success_center/SAM/Content/System_Requirements/SAM_6-8_system_requirements.htm#Hardware"
+								"uri": "https://documentation.solarwinds.com/en/success_center/SRM/content/System_Requirements/SRM_6-8_system_requirements.htm"
 							}
 						},
 						"visible": true
