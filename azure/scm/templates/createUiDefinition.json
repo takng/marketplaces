@@ -107,16 +107,13 @@
 						"osPlatform": "Windows"
 					},
 					{
-						"name": "virtualMachineSizeRecommendation",
-						"type": "Microsoft.Common.TextBlock",
+						"name": "SizeRecommendation",
+						"type": "Microsoft.Common.InfoBox",
 						"options": {
-							"text": "Recommended Size",
-							"link": {
-								"label": "Learn more",
-								"uri": "https://documentation.solarwinds.com/en/success_center/scm/Content/System_Requirements/scm_1-1_system_requirements.htm"
-							}
-						},
-						"visible": true
+							"icon": "Info",
+							"text": "Minimum requirements: \n Disk: 10GB \n Memory: 6GB",
+							"uri": "https://documentation.solarwinds.com/en/success_center/scm/Content/System_Requirements/scm_1-1_system_requirements.htm"
+						}
 					}
 				]
 			},

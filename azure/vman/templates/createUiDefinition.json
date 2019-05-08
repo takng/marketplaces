@@ -107,16 +107,13 @@
 						"osPlatform": "Windows"
 					},
 					{
-						"name": "virtualMachineSizeRecommendation",
-						"type": "Microsoft.Common.TextBlock",
+						"name": "SizeRecommendation",
+						"type": "Microsoft.Common.InfoBox",
 						"options": {
-							"text": "Recommended Size",
-							"link": {
-								"label": "Learn more",
-								"uri": "https://documentation.solarwinds.com/en/Success_Center/vman/Content/System_Requirements/VMAN_8-4_system_requirements.htm"
-							}
-						},
-						"visible": true
+							"icon": "Info",
+							"text": "Minimum requirements: \n Disk: NA \n Memory: 8GB",
+							"uri": "https://documentation.solarwinds.com/en/Success_Center/vman/Content/System_Requirements/VMAN_8-4_system_requirements.htm"
+						}
 					}
 				]
 			},

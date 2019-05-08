@@ -107,16 +107,13 @@
 						"osPlatform": "Windows"
 					},
 					{
-						"name": "virtualMachineSizeRecommendation",
-						"type": "Microsoft.Common.TextBlock",
+						"name": "SizeRecommendation",
+						"type": "Microsoft.Common.InfoBox",
 						"options": {
-							"text": "Recommended Size",
-							"link": {
-								"label": "Learn more",
-								"uri": "https://documentation.solarwinds.com/en/success_center/vnqm/content/VNQM-Installation-Requirements-sw638.htm"
-							}
-						},
-						"visible": true
+							"icon": "Info",
+							"text": "Minimum requirements: \n Disk: 8GB \n Memory: 20GB",
+							"uri": "https://documentation.solarwinds.com/en/success_center/vnqm/content/VNQM-Installation-Requirements-sw638.htm"
+						}
 					}
 				]
 			},

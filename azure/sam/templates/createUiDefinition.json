@@ -107,16 +107,13 @@
 						"osPlatform": "Windows"
 					},
 					{
-						"name": "virtualMachineSizeRecommendation",
-						"type": "Microsoft.Common.TextBlock",
+						"name": "SizeRecommendation",
+						"type": "Microsoft.Common.InfoBox",
 						"options": {
-							"text": "Recommended Size",
-							"link": {
-								"label": "Learn more",
-								"uri": "https://documentation.solarwinds.com/en/success_center/SAM/Content/System_Requirements/SAM_6-8_system_requirements.htm#Hardware"
-							}
-						},
-						"visible": true
+							"icon": "Info",
+							"text": "Minimum requirements: \n Disk: 10GB \n Memory: 10GB",
+							"uri": "https://documentation.solarwinds.com/en/success_center/SAM/Content/System_Requirements/SAM_6-8_system_requirements.htm#Hardware"
+						}
 					}
 				]
 			},
