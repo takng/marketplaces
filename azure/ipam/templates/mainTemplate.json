@@ -1,0 +1,343 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location needs to be provided"
+            }
+        },
+        "subnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Subnet Name needs to be provided"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the virtual network"
+            }
+        },
+        "addressPrefixes": {
+            "type": "array",
+            "metadata": {
+                "description": "Addresses of the Virtual Machine."
+            }
+        },
+        "subnets": {
+            "type": "array",
+            "metadata": {
+                "description": "Subnets for the virtual network"
+            }
+        },
+        "publicIpAddressName": {
+            "type": "string",
+            "metadata": {
+                "description": "Public IP Address Name for the VM"
+            }
+        },
+        "publicIpAddressType": {
+            "type": "string",
+            "metadata": {
+                "description": "Public IP Address Type for the VM"
+            }
+        },
+        "publicIpAddressSku": {
+            "type": "string",
+            "metadata": {
+                "description": "Public IP Address Sku for the VM"
+            }
+        },
+        "virtualMachineName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Virtual Machine."
+            }
+        },
+        "virtualMachineRG": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group of the Virtual Machine."
+            }
+        },
+        "osDiskType": {
+            "type": "string",
+            "metadata": {
+                "description": "You can choose between Azure managed disks types to support your workload or scenario. Learn more about managed disk types."
+            }
+        },
+        "virtualMachineSize": {
+            "type": "string",
+            "metadata": {
+                "description": "The size of virtual machine to provision for the application."
+            }
+        },
+        "image": {
+            "type": "string",
+            "metadata": {
+                "description": "The OS version of virtual machine to provision for the VM."
+            }
+        },
+        "adminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide admin username for the virtual machine"
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Provide admin password for the virtual machine"
+            }
+        },
+		"dbServerName": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide server name for the azure sql"
+            }
+        },
+		"databaseName": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide database name for the azure sql"
+            }
+        },
+		"dbUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide user name for the azure sql"
+            }
+        },
+		"dbPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Provide password for the azure sql"
+            }
+        },
+		"productsToInstall": {
+            "type": "string",
+			"defaultValue": "NCM",
+            "metadata": {
+                "description": "Provide producr name(s) to be installed"
+            }
+        },
+		"isStandard": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide installation type"
+            }
+        }
+    },
+    "variables": {
+		"networkInterfaceName": "[concat(parameters('virtualMachineName'),'-nic')]",
+		"networkSecurityGroupName": "[concat(parameters('virtualMachineName'),'-nsg')]",
+        "nsgId": "[resourceId(parameters('virtualMachineRG'), 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
+        "vnetId": "[resourceId(parameters('virtualMachineRG'),'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]"		
+    },
+    "resources": [
+		{ 
+			"apiVersion": "2018-05-01",
+			"name": "pid-0fd31937-98cb-5257-affb-11d5ce446b78", 
+			"type": "Microsoft.Resources/deployments",
+			"properties": {
+				"mode": "Incremental",
+				"template": {
+					"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"resources": []
+				}
+			}
+		},
+        {
+            "name": "[variables('networkInterfaceName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-10-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+                "[concat('Microsoft.Network/publicIpAddresses/', parameters('publicIpAddressName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[resourceId(parameters('virtualMachineRG'), 'Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[variables('nsgId')]"
+                }
+            }
+        },
+        {
+            "name": "[variables('networkSecurityGroupName')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2018-08-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                {
+                    "name": "HTTP80",
+                    "properties": {
+                        "priority": 1010,
+                        "protocol": "TCP",
+                        "access": "Allow",
+                        "direction": "Inbound",
+                        "sourceApplicationSecurityGroups": [],
+                        "destinationApplicationSecurityGroups": [],
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "80"
+                    }
+                },
+                {
+                    "name": "HTTPS443",
+                    "properties": {
+                        "priority": 1020,
+                        "protocol": "TCP",
+                        "access": "Allow",
+                        "direction": "Inbound",
+                        "sourceApplicationSecurityGroups": [],
+                        "destinationApplicationSecurityGroups": [],
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "443"
+                    }
+                },
+                {
+                    "name": "default-allow-rdp",
+                    "properties": {
+                        "priority": 1030,
+                        "protocol": "TCP",
+                        "access": "Allow",
+                        "direction": "Inbound",
+                        "sourceApplicationSecurityGroups": [],
+                        "destinationApplicationSecurityGroups": [],
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "3389"
+                    }
+                 }
+              ]
+           }
+        },
+        {
+            "name": "[parameters('virtualNetworkName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-08-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[parameters('addressPrefixes')]"
+                },
+                "subnets": "[parameters('subnets')]"
+            }
+        },
+        {
+            "name": "[parameters('publicIpAddressName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "2018-08-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
+            },
+            "sku": {
+                "name": "[parameters('publicIpAddressSku')]"
+            }
+        },
+        {
+            "name": "[parameters('virtualMachineName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2018-06-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('osDiskType')]"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "[parameters('image')]",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachineName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "enableAutomaticUpdates": true,
+                        "provisionVmAgent": true
+                    }
+                }
+            },     
+		   "resources": [
+			{
+			  "apiVersion": "2018-06-01",
+			  "type": "extensions",
+			  "name": "config-app",
+			  "location": "[parameters('location')]",
+			  "dependsOn": [
+				"[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]",
+				"[parameters('virtualMachineName')]"
+			  ],
+			  "tags": {
+				"displayName": "config-app"
+			  },
+			  "properties": {
+				"publisher": "Microsoft.Compute",
+				"type": "CustomScriptExtension",
+				"typeHandlerVersion": "1.9",
+				"autoUpgradeMinorVersion": true,
+				"settings": {
+				  "fileUris": [
+					"https://raw.githubusercontent.com/vnootan/sam/master/installation_script.ps1"
+				  ]},
+				  "protectedSettings": {
+				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-typeOfInstallation ', parameters('isStandard'),' -productsToInstall ', parameters('productsToInstall'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'))]"
+				}            
+			  }
+			}
+		  ] 
+        }
+    ],
+    "outputs": {
+        "adminUsername": {
+            "type": "string",
+            "value": "[parameters('adminUsername')]"
+        }
+    }
+}
