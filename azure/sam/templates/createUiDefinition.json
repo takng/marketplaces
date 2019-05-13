@@ -97,9 +97,7 @@
 						"label": "Virtual machine size",
 						"toolTip": "The size of virtual machine to provision for the application.",
 						"recommendedSizes": [
-							"Standard_D2_v3",
-							"Standard_D4_v3",
-							"Standard_D8_v3",
+							"Standard_DS12_v2",
 							"Standard_D16_v3",
 							"Standard_D32_v3",
 							"Standard_D64_v3"
@@ -111,8 +109,8 @@
 						"type": "Microsoft.Common.InfoBox",
 						"options": {
 							"icon": "Info",
-							"text": "Minimum requirements: \n Disk: 10GB \n Memory: 10GB",
-							"uri": "https://documentation.solarwinds.com/en/success_center/SAM/Content/System_Requirements/SAM_6-8_system_requirements.htm#Hardware"
+							"text": "Recommended requirements: \n CPU: Quad core processor \n Hard drive space: 20 GB \n Memory: 16 GB",
+							"uri": "https://documentation.solarwinds.com/en/success_center/SAM/Content/System_Requirements/SAM_6-8_system_requirements.htm"
 						}
 					}
 				]
@@ -326,7 +324,7 @@
 						"type": "Microsoft.Common.TextBlock",
 						"visible": "[not(steps('OrionInstallationType').installationtype)]",
 						"options": {
-							"text": "Database size limited to 10GB"
+							"text": "Database size limited to 10 GB"
 						}
 					},
 					{
@@ -343,14 +341,23 @@
 						"label": "Enter Azure DB details",
 						"elements": [
 							{
+								"name": "DBSizeRecommendation",
+								"type": "Microsoft.Common.InfoBox",
+								"options": {
+									"icon": "Info",
+									"text": "Recommended requirements: \n DTU : 50",
+									"uri": "https://documentation.solarwinds.com/en/Success_Center/orionplatform/Content/install-orion-azure.htm"
+								}
+							},
+							{
 								"name": "Createdb",
 								"type": "Microsoft.Common.TextBlock",
 								"options": {
-									"text": "Please enter your existing azuredatabase details, if you don't have Create New AZURE SQL DATABASE ",
 									"link": {
 										"label": "Create new database",
 										"uri": "https://portal.azure.com/#create/Microsoft.SQLDatabase"
-									}
+									},
+									"text": "Please enter Azure sql database details"
 								}
 							},
 							{
