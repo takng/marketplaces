@@ -222,7 +222,7 @@
 				"bladeTitle": "Settings",
 				"elements": [
 					{
-						"name": "virtualNetwork",
+						"name": "virtualnetwork",
 						"type": "Microsoft.Network.VirtualNetworkCombo",
 						"label": {
 							"virtualNetwork": "Virtual network",
@@ -233,21 +233,21 @@
 							"subnets": "Subnets for the virtual network"
 						},
 						"defaultValue": {
-							"name": "VirtualNetwork",
-							"addressPrefixSize": "/16"
+							"name": "vnet",
+							"addressPrefixSize": "10.0.0.0//16"
 						},
 						"constraints": {
-							"minAddressPrefixSize": "/16"
+							"minAddressPrefixSize": "10.0.0.0/16"
 						},
 						"subnets": {
 							"subnet1": {
 								"label": "Subnet",
 								"defaultValue": {
-									"name": "Subnet-1",
-									"addressPrefixSize": "/24"
+									"name": "vsubnet",
+									"addressPrefixSize": "10.0.1.0/24"
 								},
 								"constraints": {
-									"minAddressPrefixSize": "/24",
+									"minAddressPrefixSize": "10.0.1.0/24",
 									"minAddressCount": 12,
 									"requireContiguousAddresses": false
 								}
@@ -416,18 +416,18 @@
 		],
 		"outputs": {
 			"location": "[location()]",
-			"subnetName": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.name]",
-			"virtualNetworkName": "[steps('NetworkSettings').virtualNetwork]",
+			"subnetName": "[steps('NetworkSettings').virtualnetwork.subnets.subnet1.name]",
+			"virtualNetworkName": "[steps('NetworkSettings').virtualnetwork]",
 			"virtualMachineName": "[basics('appName')]",
 			"image": "[steps('OSDetails').image]",
 			"virtualMachineSize": "[steps('InfrastructureInformation').virtualMachineSize]",
 			"publicIpAddressName": "[steps('NetworkSettings').publicIpAddress.name]",
 			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",
 			"osDiskType": "[steps('OSDetails').osDiskType]",
-			"virtualMachineRG": "[steps('NetworkSettings').virtualNetwork.resourceGroup]",
+			"virtualMachineRG": "[steps('NetworkSettings').virtualnetwork.resourceGroup]",
 			"publicIpAddressType": "[steps('NetworkSettings').publicIpAddress.publicIPAllocationMethod]",
-			"subnets": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.addressPrefix]",
-			"addressPrefixes": "[steps('NetworkSettings').virtualNetwork.addressPrefix]",
+			"subnets": "[steps('NetworkSettings').virtualnetwork.subnets.subnet1.addressPrefix]",
+			"addressPrefixes": "[steps('NetworkSettings').virtualnetwork.addressPrefix]",
 			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",
 			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",
 			"dbServerName": "[steps('OrionInstallationType').AzureDbDetails.dbServerName]",

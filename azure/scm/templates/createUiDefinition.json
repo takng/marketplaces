@@ -111,7 +111,7 @@
 						"type": "Microsoft.Common.InfoBox",
 						"options": {
 							"icon": "Info",
-							"text": "Minimum requirements: \n Disk: 10GB \n Memory: 6GB",
+							"text": "Recommended requirements: \n CPU: Quad core processor \n Hard drive space: 20 GB \n Memory: 8 GB",
 							"uri": "https://documentation.solarwinds.com/en/success_center/scm/Content/System_Requirements/scm_1-1_system_requirements.htm"
 						}
 					}
@@ -326,7 +326,7 @@
 						"type": "Microsoft.Common.TextBlock",
 						"visible": "[not(steps('OrionInstallationType').installationtype)]",
 						"options": {
-							"text": "Database size limited to 10GB"
+							"text": "Database size limited to 10 GB"
 						}
 					},
 					{
@@ -343,10 +343,19 @@
 						"label": "Enter Azure DB details",
 						"elements": [
 							{
+								"name": "DBSizeRecommendation",
+								"type": "Microsoft.Common.InfoBox",
+								"options": {
+									"icon": "Info",
+									"text": "Recommended requirements: \n DTU : 50",
+									"uri": "https://documentation.solarwinds.com/en/Success_Center/orionplatform/Content/install-orion-azure.htm"
+								}
+							},
+							{
 								"name": "Createdb",
 								"type": "Microsoft.Common.TextBlock",
 								"options": {
-									"text": "Please enter your existing azuredatabase details, if you don't have Create New AZURE SQL DATABASE ",
+									"text": "Please enter Azure sql database details",
 									"link": {
 										"label": "Create new database",
 										"uri": "https://portal.azure.com/#create/Microsoft.SQLDatabase"
