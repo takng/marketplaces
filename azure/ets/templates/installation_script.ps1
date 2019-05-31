@@ -10,12 +10,12 @@ param
 
 Start-Transcript -Path C:\postinstall.Log
 
-if($typeOfInstallation -eq "false" -OR $typeOfInstallation -eq "False" -OR $typeOfInstallation -eq "FALSE") {
-	[bool]$isStandard = $false
-}
-else {
-	[bool]$isStandard = $true
-}
+ if($typeOfInstallation -eq "false" -OR $typeOfInstallation -eq "False" -OR $typeOfInstallation -eq "FALSE") {
+ 	[bool]$isStandard = $false
+ }
+ else {
+ 	[bool]$isStandard = $true
+ }
 
 write-host ' installing NuGet module....'; [datetime]::Now
 Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
@@ -40,18 +40,18 @@ else
 {
 	Get-AzureStorageBlobContent -Blob express.xml -Container vinay-storage-account-container -Destination C:\Windows\Temp\ -Context $ctx	
 }
-#Get-AzureStorageBlobContent -Blob sqldetail.txt  -Container vinay-storage-account-container -Destination C:\Windows\Temp\ -Context $ctx
-#Remove-AzureStorageBlob -Blob sqldetail.txt -Container vinay-storage-account-container -Context $ctx
+
 write-host ' copied text file from azure blob....'; [datetime]::Now
 
 write-host 'reading installer name from json file....'; [datetime]::Now
 $installers_list_object = Get-Content 'C:\Windows\Temp\installers_list.json' | Out-String | ConvertFrom-Json
-$installer_name = $installers_list_object.$productsToInstall
+$installer_path = $installers_list_object.$productsToInstall
 write-host 'got the installer name from json file....'; [datetime]::Now
 
-write-host ' copying solarwindinstaller  from azure blob....'; [datetime]::Now
-Get-AzureStorageBlobContent -Blob $installer_name  -Container vinay-storage-account-container -Destination C:\Windows\Temp\ -Context $ctx
-write-host ' copied solarwindinstaller  from azure blob....'; [datetime]::Now
+$installer_name  = "Solarwind-Orion-" + $productsToInstall +".exe"
+write-host "downloading solarwind online installer from $installer_path"; [datetime]::Now
+Invoke-WebRequest $installer_path -OutFile "C:\Windows\Temp\$installer_name"
+write-host "downloaded solarwind online installer from $installer_path"; [datetime]::Now
 
 $filePath = 'C:\Windows\Temp\express.xml'
 if($isStandard)
@@ -72,6 +72,9 @@ if($isStandard)
 	$node.DatabaseName=$databaseName
 	$node.User=$dbUserName    
 	$node.UserPassword=$dbPassword
+	
+	$node=$xml.SilentConfig.Host.Info.Website
+	$node.ApplicationName=$productsToInstall
 }
 
 $xml.Save($filePath)
@@ -94,7 +97,7 @@ while(1)
 	  continue;
 	}
 	else {
-		write-host "process completed"
+		write-host "process completed"; [datetime]::Now
 		Remove-Variable Solarwinds
 	    break;
 	}
@@ -102,11 +105,10 @@ while(1)
 
 write-host ' Deleting the files created in installation process'; [datetime]::Now
 
-$installer_type_file = "C:\Windows\Temp\"+$typeOfInstallation+".xml"
-if (Test-Path $installer_type_file) 
+if (Test-Path $filePath) 
 {
-  Remove-Item $installer_type_file
-  write-host ' Installer_type file deleted '; [datetime]::Now
+  Remove-Item $filePath
+  write-host ' silent config file deleted '; [datetime]::Now
 }
 
 $installer_list_file = "C:\Windows\Temp\installers_list.json"
@@ -121,13 +123,6 @@ if (Test-Path $installer_file)
 {
   Remove-Item $installer_file
   write-host 'silent installer file deleted'; [datetime]::Now
-}
-
-$installer_exe_file = "C:\Windows\Temp\"+$installer_name
-if (Test-Path $installer_exe_file) 
-{
-  Remove-Item $installer_exe_file
-  write-host ' installer setup file deleted'; [datetime]::Now 
 }
 
 write-host 'Files deleted which has been created in installation process'; [datetime]::Now 
