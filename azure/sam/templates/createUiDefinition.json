@@ -18,19 +18,12 @@
 				"type": "Microsoft.Common.TextBox",
 				"label": "App Name",
 				"toolTip": "orion will be accessed via http://[appname]:8787/orion",
-				"defaultValue": "orionserver",
+				"defaultValue": "samserver",
 				"constraints": {
 					"required": true,
 					"regex": "^[a-z0-9A-Z-]{3,79}$",
 					"validationMessage": "The App Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
 				}
-			},
-			{
-				"name": "productName",
-				"label": "Product Name",
-				"type": "Microsoft.Common.TextBox",
-				"visible": false,
-				"defaultValue": "SAM"
 			}
 		],
 		"steps": [
@@ -97,10 +90,7 @@
 						"label": "Virtual machine size",
 						"toolTip": "The size of virtual machine to provision for the application.",
 						"recommendedSizes": [
-							"Standard_DS12_v2",
-							"Standard_D16_v3",
-							"Standard_D32_v3",
-							"Standard_D64_v3"
+							"Standard_DS4_v2"
 						],
 						"osPlatform": "Windows"
 					},
@@ -109,7 +99,7 @@
 						"type": "Microsoft.Common.InfoBox",
 						"options": {
 							"icon": "Info",
-							"text": "Recommended requirements: \n CPU: Quad core processor \n Hard drive space: 20 GB \n Memory: 16 GB",
+							"text": "Recommended size: \n CPU: Quad core processor \n Hard drive space: 20 GB \n Memory: 16 GB",
 							"uri": "https://documentation.solarwinds.com/en/success_center/SAM/Content/System_Requirements/SAM_6-8_system_requirements.htm"
 						}
 					}
@@ -222,7 +212,7 @@
 				"bladeTitle": "Settings",
 				"elements": [
 					{
-						"name": "virtualnetwork",
+						"name": "virtualNetwork",
 						"type": "Microsoft.Network.VirtualNetworkCombo",
 						"label": {
 							"virtualNetwork": "Virtual network",
@@ -233,21 +223,21 @@
 							"subnets": "Subnets for the virtual network"
 						},
 						"defaultValue": {
-							"name": "vnet",
-							"addressPrefixSize": "10.0.0.0//16"
+							"name": "VirtualNetwork",
+							"addressPrefixSize": "/24"
 						},
 						"constraints": {
-							"minAddressPrefixSize": "10.0.0.0/16"
+							"minAddressPrefixSize": "/24"
 						},
 						"subnets": {
 							"subnet1": {
 								"label": "Subnet",
 								"defaultValue": {
-									"name": "vsubnet",
-									"addressPrefixSize": "10.0.1.0/24"
+									"name": "Subnet-1",
+									"addressPrefixSize": "/24"
 								},
 								"constraints": {
-									"minAddressPrefixSize": "10.0.1.0/24",
+									"minAddressPrefixSize": "/24",
 									"minAddressCount": 12,
 									"requireContiguousAddresses": false
 								}
@@ -294,12 +284,12 @@
 						"name": "installationtype",
 						"type": "Microsoft.Common.OptionsGroup",
 						"label": "Installation Type",
-						"defaultValue": "Express",
+						"defaultValue": "Lightweight",
 						"toolTip": "Select Installation Type",
 						"constraints": {
 							"allowedValues": [
 								{
-									"label": "Express",
+									"label": "Lightweight",
 									"value": false
 								},
 								{
@@ -341,30 +331,29 @@
 						"label": "Enter Azure DB details",
 						"elements": [
 							{
-								"name": "DBSizeRecommendation",
-								"type": "Microsoft.Common.InfoBox",
-								"options": {
-									"icon": "Info",
-									"text": "Recommended requirements: \n DTU : 50",
-									"uri": "https://documentation.solarwinds.com/en/Success_Center/orionplatform/Content/install-orion-azure.htm"
-								}
-							},
-							{
 								"name": "Createdb",
 								"type": "Microsoft.Common.TextBlock",
 								"options": {
 									"link": {
 										"label": "Create new database",
 										"uri": "https://portal.azure.com/#create/Microsoft.SQLDatabase"
-									},
-									"text": "Please enter Azure sql database details"
+									}
+								}
+							},
+							{
+								"name": "DBSizeRecommendation",
+								"type": "Microsoft.Common.InfoBox",
+								"options": {
+									"icon": "Info",
+									"text": "Minimum DTU : 50",
+									"uri": "https://documentation.solarwinds.com/en/Success_Center/orionplatform/Content/install-orion-azure.htm"
 								}
 							},
 							{
 								"name": "dbServerName",
 								"type": "Microsoft.Common.TextBox",
-								"label": "SQL Server Name",
-								"toolTip": "Provide server name",
+								"label": "Server Name",
+								"toolTip": "Provide server name and this will be appended to .database.windows.net",
 								"constraints": {
 									"regex": "^[a-z0-9A-Z-]{3,79}$",
 									"required": true,
@@ -374,7 +363,7 @@
 							{
 								"name": "databaseName",
 								"type": "Microsoft.Common.TextBox",
-								"label": "Enter Database Name",
+								"label": "Database Name",
 								"toolTip": "Provide database name",
 								"constraints": {
 									"regex": "^[a-z0-9A-Z-]{3,79}$",
@@ -385,7 +374,7 @@
 							{
 								"name": "dbUserName",
 								"type": "Microsoft.Common.TextBox",
-								"label": "SQL user name",
+								"label": "User Name",
 								"toolTip": "Provide user name",
 								"constraints": {
 									"regex": "^[a-z0-9A-Z-]{3,79}$",
@@ -416,25 +405,24 @@
 		],
 		"outputs": {
 			"location": "[location()]",
-			"subnetName": "[steps('NetworkSettings').virtualnetwork.subnets.subnet1.name]",
-			"virtualNetworkName": "[steps('NetworkSettings').virtualnetwork]",
+			"subnetName": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.name]",
+			"virtualNetworkName": "[steps('NetworkSettings').virtualNetwork.name]",
 			"virtualMachineName": "[basics('appName')]",
 			"image": "[steps('OSDetails').image]",
 			"virtualMachineSize": "[steps('InfrastructureInformation').virtualMachineSize]",
 			"publicIpAddressName": "[steps('NetworkSettings').publicIpAddress.name]",
 			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",
 			"osDiskType": "[steps('OSDetails').osDiskType]",
-			"virtualMachineRG": "[steps('NetworkSettings').virtualnetwork.resourceGroup]",
+			"virtualMachineRG": "[steps('NetworkSettings').virtualNetwork.resourceGroup]",
 			"publicIpAddressType": "[steps('NetworkSettings').publicIpAddress.publicIPAllocationMethod]",
-			"subnets": "[steps('NetworkSettings').virtualnetwork.subnets.subnet1.addressPrefix]",
-			"addressPrefixes": "[steps('NetworkSettings').virtualnetwork.addressPrefix]",
+			"addressPrefixes": "[steps('NetworkSettings').virtualNetwork.addressPrefixSize]",
+			"subnetPrefix": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.addressPrefixSize]",
 			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",
 			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",
 			"dbServerName": "[steps('OrionInstallationType').AzureDbDetails.dbServerName]",
 			"databaseName": "[steps('OrionInstallationType').AzureDbDetails.databaseName]",
 			"dbUserName": "[steps('OrionInstallationType').AzureDbDetails.dbUserName]",
 			"dbPassword": "[steps('OrionInstallationType').AzureDbDetails.dbPassword]",
-			"productsToInstall": "[basics('productName')]",
 			"isStandard": "[steps('OrionInstallationType').installationtype]",
 			"windowsLicenseType": "[steps('OSDetails').windowsLicenseType]"
 		}
