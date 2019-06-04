@@ -323,7 +323,7 @@
 						"type": "Microsoft.Common.TextBlock",
 						"visible": "[not(steps('OrionInstallationType').installationtype)]",
 						"options": {
-							"text": "Good for evaluating prodcuts on the orion platform"
+							"text": "Good for evaluating products on the orion platform"
 						}
 					},
 					{
