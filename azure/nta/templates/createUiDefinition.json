@@ -144,10 +144,6 @@
 						"constraints": {
 							"allowedValues": [
 								{
-									"label": "Premium SSD",
-									"value": "Premium_LRS"
-								},
-								{
 									"label": "Standard SSD",
 									"value": "StandardSSD_LRS"
 								},
@@ -481,28 +477,37 @@
 		],
 		"outputs": {
 			"location": "[location()]",
-			"subnetName": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.name]",
-			"virtualNetworkName": "[steps('NetworkSettings').virtualNetwork.name]",
-			"virtualMachineName": "[basics('appName')]",
+			"virtualMachineName": "[basics('appName')]",	
+			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",			
+			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",			
 			"image": "[steps('OSDetails').image]",
 			"virtualMachineSize": "[steps('InfrastructureInformation').virtualMachineSize]",
-			"publicIpAddressName": "[steps('NetworkSettings').publicIpAddress.name]",
-			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",
 			"osDiskType": "[steps('OSDetails').osDiskType]",
-			"virtualMachineRG": "[steps('NetworkSettings').virtualNetwork.resourceGroup]",
+			
+			"virtualNetworkNewOrExisting": "[steps('NetworkSettings').virtualNetwork.newOrExisting]",
+			"virtualNetworkName": "[steps('NetworkSettings').virtualNetwork.name]",
+			"addressPrefixes": "[steps('NetworkSettings').virtualNetwork.addressPrefixes]",
+			"subnetName": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.name]",	
+			"subnetPrefix": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.addressPrefix]",			
+			"virtualMachineRG": "[steps('NetworkSettings').virtualNetwork.resourceGroup]",		
+			
+			"publicIpNewOrExisting": "[steps('NetworkSettings').publicIpAddress.newOrExistingOrNone]",			
+			"publicIpAddressName": "[steps('NetworkSettings').publicIpAddress.name]",
+			"publicIpDns": "[steps('NetworkSettings').publicIpAddress.domainNameLabel]",
+			"publicIpResourceGroupName": "[steps('NetworkSettings').publicIpAddress.resourceGroup]",
 			"publicIpAddressType": "[steps('NetworkSettings').publicIpAddress.publicIPAllocationMethod]",
-			"addressPrefixes": "[steps('NetworkSettings').virtualNetwork.addressPrefixSize]",
-			"subnetPrefix": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.addressPrefixSize]",
-			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",
-			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",
+			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",	
+						
 			"dbServerName": "[steps('OrionInstallationType').AzureDbDetails.dbServerName]",
 			"databaseName": "[steps('OrionInstallationType').AzureDbDetails.databaseName]",
 			"dbUserName": "[steps('OrionInstallationType').AzureDbDetails.dbUserName]",
 			"dbPassword": "[steps('OrionInstallationType').AzureDbDetails.dbPassword]",
+
 			"ntaServerName": "[steps('NTADatabaseDetails').NTADBDetails.ntaServerName]",
 			"ntaDatabaseName": "[steps('NTADatabaseDetails').NTADBDetails.ntaDatabaseName]",
 			"ntaUserName": "[steps('NTADatabaseDetails').NTADBDetails.ntaUserName]",
 			"ntaPassword": "[steps('NTADatabaseDetails').NTADBDetails.ntaPassword]",
+			
 			"isStandard": "[steps('OrionInstallationType').installationtype]",
 			"windowsLicenseType": "[steps('OSDetails').windowsLicenseType]"
 		}
