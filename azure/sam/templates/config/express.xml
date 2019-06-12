@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<SilentConfig>
+
+<InstallerConfiguration>
+
+    <ProductsToInstall>SAM</ProductsToInstall>
+
+    <InstallPath>c:\Temp\OrionSetup\</InstallPath>
+
+    <AdvancedInstallMode>False</AdvancedInstallMode>
+
+ </InstallerConfiguration>
+
+</SilentConfig>
