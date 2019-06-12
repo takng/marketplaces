@@ -349,11 +349,11 @@
 								"name": "dbServerName",
 								"type": "Microsoft.Common.TextBox",
 								"label": "Server Name",
-								"toolTip": "Provide server name and this will be appended to .database.windows.net",
+								"toolTip": "Please provide server name alongwith FQDN",
 								"constraints": {
-									"regex": "^[a-z0-9A-Z-]{3,79}$",
+									"regex": "^([a-f0-9A-F]+(.database)+(.windows)+.[a-zA-Z]{2,})$",
 									"required": true,
-									"validationMessage": "The Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+									"validationMessage": "The Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only alongwith FQDN(e.g database.windows.net)."
 								}
 							},
 							{
