@@ -16,29 +16,17 @@
                 <!--(Sets flag to create new database during CW)-->
                 <UseSQLSecurity>true</UseSQLSecurity>
                 <!--(Enables SQL Server authentication)-->
-                <DatabaseName>SolarWindsOrion</DatabaseName>
-                <!--(Orion database name)-->
-                <DatabasePath/>
-                <ServerName>.database.windows.net</ServerName>
-                <!--(SQL server name for silent config wizard, e.g.: localhost)-->
-                <InstanceName/>
-                <!--(SQL instance name for silent config wizard)-->
-                <UserPassword>India@123</UserPassword>
-                <!--(SQL account password,  when you enabled UseSqlAuthentication)-->
-                <User>sa</User>
-                <!--(SQL account username, when you enabled UseSqlAuthentication)-->
+                <ServerName>OrionDB</ServerName>
+                <DatabaseName>SamDB</DatabaseName>
+                <!--(SQL server and database name, e.g.: localhost)-->                
+                <User>orionadmin</User>
+                <UserPassword> </UserPassword>
+                <!--(Azure SQL account)-->
                 <AccountType>NewSql</AccountType>
                 <!--(Orion database account access type. Other possible values: ExistingSql, ExistingWindows)-->
                 <Account>SolarWindsOrionDatabaseUser</Account>
-                <!--(Name of Orion database account, e.g.: SolarwindsOrionDatabaseUser)-->
-                <AccountPassword>India@123</AccountPassword>
-                <!--(Password to Orion database account)-->
-                <NeedSQLServerSecurity>false</NeedSQLServerSecurity>
-                <NeedToChangeSAPassword>false</NeedToChangeSAPassword>
-                <SAPassword>India@123</SAPassword>
-                <AddServiceDependencies>false</AddServiceDependencies>
-                <RemoveServiceDependencies>false</RemoveServiceDependencies>
-                <FailureInfo/>
+                <AccountPassword></AccountPassword>
+                <!--(Orion database account, e.g.: SolarwindsOrionDatabaseUser)-->
             </Database>
             <Website>
                 <Folder>C:\InetPub\SolarWinds</Folder>

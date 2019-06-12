@@ -191,7 +191,9 @@
     },
     "variables": {		
 		"silentConfigName" : "[if(equals(parameters('isStandard'), bool('true')), 'config/standard.xml', 'config/express.xml')]",
-		"silentConfigUri": "[uri(parameters('_artifactsLocation'), concat(variables('silentConfigName'), parameters('_artifactsLocationSasToken')))]",
+        "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat(variables('silentConfigName'), parameters('_artifactsLocationSasToken')))]",
+        
+        "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-SAM.exe', parameters('_artifactsLocationSasToken')))]",
 				
         "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('installation_script.ps1', parameters('_artifactsLocationSasToken')))]",
 		"publicIpAddressId": {
@@ -384,7 +386,7 @@
 					"[variables('scriptFileUri')]"
 				  ]},
 				  "protectedSettings": {
-				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'))]"
+				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'))]"
 				}            
 			  }
 			}
