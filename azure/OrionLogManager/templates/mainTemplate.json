@@ -159,7 +159,35 @@
             "metadata": {
                 "description": "Provide password for the azure sql"
             }
-        },		
+        },	
+        "olmServerName": {
+            "type": "string",
+            "defaultValue": "olmserver",
+            "metadata": {
+                "description": "Provide server name for the azure sql"
+            }
+        },
+		"olmDatabaseName": {
+            "type": "string",
+            "defaultValue": "olmdb",
+            "metadata": {
+                "description": "Provide database name for the azure sql"
+            }
+        },
+		"olmUserName": {
+            "type": "string",
+            "defaultValue": "sa",
+            "metadata": {
+                "description": "Provide user name for the azure sql"
+            }
+        },
+		"olmPassword": {
+            "type": "string",
+            "defaultValue": "pwd",
+            "metadata": {
+                "description": "Provide password for the azure sql"
+            }
+        },	
 		"isStandard": {
             "type": "bool",
             "defaultValue": true,
@@ -384,7 +412,7 @@
 					"[variables('scriptFileUri')]"
 				  ]},
 				  "protectedSettings": {
-				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'))]"
+				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'),' -olmServerName ', parameters('olmServerName'),' -olmDatabaseName ',parameters('olmDatabaseName'),' -olmUserName ',parameters('olmUserName'),' -olmPassword ',parameters('olmPassword'))]"
 				}            
 			  }
 			}

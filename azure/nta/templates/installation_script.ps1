@@ -4,7 +4,11 @@ param
 	[string]$dbServerName, 
 	[string]$databaseName, 
 	[string]$dbUserName, 
-	[string]$dbPassword
+	[string]$dbPassword,
+	[string]$ntaServerName, 
+	[string]$ntaDatabaseName, 
+	[string]$ntaUserName, 
+	[string]$ntaPassword
 )
 
 Start-Transcript -Path C:\postinstall.Log
@@ -26,11 +30,19 @@ $xml.Load($filePath)
 
 if($xml.SilentConfig.Host.Info.Database)
 {
-	$node=$xml.SilentConfig.Host.Info.Database	
-	$node.ServerName=$dbServerName+$node.ServerName
-	$node.DatabaseName=$databaseName
-	$node.User=$dbUserName    
-	$node.UserPassword=$dbPassword
+	$oriondbnode=$xml.SilentConfig.Host.Info.Database	
+	$oriondbnode.ServerName=$dbServerName+$oriondbnode.ServerName
+	$oriondbnode.DatabaseName=$databaseName
+	$oriondbnode.User=$dbUserName    
+	$oriondbnode.UserPassword=$dbPassword
+	$oriondbnode.AccountPassword=$dbPassword
+
+	$ntadbnode=$xml.SilentConfig.Host.Info.NetFlowConfiguration.FlowStorageConfig
+	$ntadbnode.ServerName=$ntaServerName+$ntadbnode.ServerName
+	$ntadbnode.DatabaseName=$ntaDatabaseName
+	$ntadbnode.User=$ntaUserName    
+	$ntadbnode.UserPassword=$ntaPassword
+	$ntadbnode.AccountPassword=$ntaPassword
 	
 	$xml.Save($filePath)
 }
