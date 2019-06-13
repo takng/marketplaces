@@ -400,13 +400,13 @@
 				]
 			},
 			{
-				"name": "NTADatabaseDetails",
-				"label": "NTA Database Details",
+				"name": "OLMDatabaseDetails",
+				"label": "OLM Database Details",
 				"subLabel": {
-					"preValidation": "NTA Database Details",
+					"preValidation": "OLM Database Details",
 					"postValidation": "Done!"
 				},
-				"bladeTitle": "NTA Database Details",
+				"bladeTitle": "OLM Database Details",
 				"elements": [
 					{
 						"name": "ShowExpressTextFirst",
@@ -417,12 +417,12 @@
 						}
 					},
 					{
-						"name": "NTADBDetails",
+						"name": "OLMDBDetails",
 						"type": "Microsoft.Common.Section",
-						"label": "Enter NTA Database details",
+						"label": "Enter OLM Database details",
 						"elements": [
 							{
-								"name": "ntaServerName",
+								"name": "olmServerName",
 								"type": "Microsoft.Common.TextBox",
 								"label": "Server Name",
 								"defaultValue": "[steps('OrionInstallationType').AzureDbDetails.dbServerName]",
@@ -434,7 +434,7 @@
 								}
 							},
 							{
-								"name": "ntaDatabaseName",
+								"name": "olmDatabaseName",
 								"type": "Microsoft.Common.TextBox",
 								"label": "Database Name",
 								"toolTip": "Provide database name",
@@ -445,7 +445,7 @@
 								}
 							},
 							{
-								"name": "ntaUserName",
+								"name": "olmUserName",
 								"type": "Microsoft.Common.TextBox",
 								"label": "User Name",
 								"toolTip": "Provide user name",
@@ -456,7 +456,7 @@
 								}
 							},
 							{
-								"name": "ntaPassword",
+								"name": "olmPassword",
 								"type": "Microsoft.Common.PasswordBox",
 								"toolTip": "Please provide the password",
 								"label": {
@@ -504,10 +504,10 @@
 			"dbUserName": "[steps('OrionInstallationType').AzureDbDetails.dbUserName]",
 			"dbPassword": "[steps('OrionInstallationType').AzureDbDetails.dbPassword]",
 
-			"ntaServerName": "[steps('NTADatabaseDetails').NTADBDetails.ntaServerName]",
-			"ntaDatabaseName": "[steps('NTADatabaseDetails').NTADBDetails.ntaDatabaseName]",
-			"ntaUserName": "[steps('NTADatabaseDetails').NTADBDetails.ntaUserName]",
-			"ntaPassword": "[steps('NTADatabaseDetails').NTADBDetails.ntaPassword]",
+			"olmServerName": "[steps('OLMDatabaseDetails').OLMDBDetails.olmServerName]",
+			"olmDatabaseName": "[steps('OLMDatabaseDetails').OLMDBDetails.olmDatabaseName]",
+			"olmUserName": "[steps('OLMDatabaseDetails').OLMDBDetails.olmUserName]",
+			"olmPassword": "[steps('OLMDatabaseDetails').OLMDBDetails.olmPassword]",
 			
 			"isStandard": "[steps('OrionInstallationType').installationtype]",
 			"windowsLicenseType": "[steps('OSDetails').windowsLicenseType]"

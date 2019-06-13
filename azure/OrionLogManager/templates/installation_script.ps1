@@ -4,7 +4,11 @@ param
 	[string]$dbServerName, 
 	[string]$databaseName, 
 	[string]$dbUserName, 
-	[string]$dbPassword
+	[string]$dbPassword,
+	[string]$olmServerName, 
+	[string]$olmDatabaseName, 
+	[string]$olmUserName, 
+	[string]$olmPassword
 )
 
 Start-Transcript -Path C:\postinstall.Log
@@ -26,11 +30,19 @@ $xml.Load($filePath)
 
 if($xml.SilentConfig.Host.Info.Database)
 {
-	$node=$xml.SilentConfig.Host.Info.Database	
-	$node.ServerName=$dbServerName+$node.ServerName
-	$node.DatabaseName=$databaseName
-	$node.User=$dbUserName    
-	$node.UserPassword=$dbPassword
+	$oriondbnode=$xml.SilentConfig.Host.Info.Database	
+	$oriondbnode.ServerName=$dbServerName+$oriondbnode.ServerName
+	$oriondbnode.DatabaseName=$databaseName
+	$oriondbnode.User=$dbUserName    
+	$oriondbnode.UserPassword=$dbPassword
+	$oriondbnode.AccountPassword=$dbPassword
+
+	$olmdbnode=$xml.SilentConfig.Host.Info.OrionLogConfiguration.StorageConfig
+	$olmdbnode.ServerName=$olmServerName+$olmdbnode.ServerName
+	$olmdbnode.DatabaseName=$olmDatabaseName
+	$olmdbnode.User=$olmUserName    
+	$olmdbnode.UserPassword=$olmPassword
+	$olmdbnode.AccountPassword=$olmPassword
 	
 	$xml.Save($filePath)
 }

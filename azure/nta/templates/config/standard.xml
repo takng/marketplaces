@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SilentConfig>
+  <InstallerConfiguration>
+    <ProductsToInstall>NTA</ProductsToInstall>
+    <!-- true - standard installation, false - express installation -->
+    <AdvancedInstallMode>True</AdvancedInstallMode>
+    <!-- true - skips CW -->
+    <SkipConfigurationWizardRun>False</SkipConfigurationWizardRun>
+    <VerifyErrorStrings>finished due to error;Login failed for user;ERROR ConfigurationProgressScene</VerifyErrorStrings>
+  </InstallerConfiguration>
+  <Host>
+    <Info>
+      <ReconfigureDatabase>true</ReconfigureDatabase>
+      <ReconfigureWebsite>true</ReconfigureWebsite>
+      <ReconfigureServices>true</ReconfigureServices>
+      <ReconfigurePermissions>true</ReconfigurePermissions>
+      <Database>
+        <CreateNewDatabase>false</CreateNewDatabase>
+        <DatabaseName>SolarWindsOrion</DatabaseName>
+        <ServerName>.database.windows.net</ServerName>
+        <!-- should SQL login be used, if set to 'false' windows authentication is used -->
+	      <UseSQLSecurity>true</UseSQLSecurity>
+        <!-- sql server master users (usually 'sa') -->
+        <User>orionadmin</User>
+        <UserPassword></UserPassword>
+        <!-- sql server account details that will be used by Orion -->
+        <AccountType>NewSql</AccountType> <!-- other option ExistingSql -->
+        <Account>SolarWindsOrionDatabaseUser</Account>
+        <AccountPassword></AccountPassword>
+      </Database>
+      <Website>
+        <Folder>C:\InetPub\SolarWinds</Folder>
+        <Address>(All Unassigned)</Address>
+        <Port>8787</Port>
+        <ApplicationName>SolarWinds NetPerfMon</ApplicationName>
+        <LaunchWebConsole>false</LaunchWebConsole>
+        <ConfigurationSkipped_IISNotInstalled>false</ConfigurationSkipped_IISNotInstalled>
+        <EnableWindowsLogin>false</EnableWindowsLogin>
+      </Website>
+      <NetFlowConfiguration>
+        <FlowStorageConfig>
+          <!-- options have similar functionlity as main 'Database' element -->
+          <CreateNewDatabase>false</CreateNewDatabase>
+          <!-- database name should different than main database -->
+          <DatabaseName>ntadb</DatabaseName>
+          <ServerName>.database.windows.net</ServerName>
+	        <UseSQLSecurity>true</UseSQLSecurity>
+          <User>orionadmin</User>
+          <UserPassword></UserPassword>
+          <AccountType>NewSql</AccountType>
+          <Account>SolarWindsNtaDatabaseUser</Account>
+          <AccountPassword></AccountPassword>
+        </FlowStorageConfig>
+      </NetFlowConfiguration>
+    </Info>
+  </Host>
+  <Plugins>
+    <Plugin Assembly="SolarWinds.ConfigurationWizard.Plugin.NetFlow" FactoryType="SolarWinds.ConfigurationWizard.Plugin.NetFlow.SilentMode.NetFlowSilentConfigureFactory" />
+  </Plugins>
+</SilentConfig>
