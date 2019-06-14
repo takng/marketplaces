@@ -351,7 +351,7 @@
 								"label": "Server Name",
 								"toolTip": "Fully qualified SQL server name. This should be an existing SQL server.",
 								"constraints": {
-									"regex": "^([a-f0-9A-F]+(.database)+(.windows)+.[a-zA-Z]{2,})$",
+									"regex": "^([a-z0-9A-Z]+(.database)+(.windows)+.[a-zA-Z]{2,})$",
 									"required": true,
 									"validationMessage": "The SQL Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only alongwith FQDN(e.g database.windows.net). The sql server should be an existing server."
 								}
