@@ -4,6 +4,10 @@
         <ProductsToInstall>SAM</ProductsToInstall>
         <AdvancedInstallMode>True</AdvancedInstallMode>
         <SkipConfigurationWizardRun>False</SkipConfigurationWizardRun>
+		<WebConsoleUserName></WebConsoleUserName>
+		<!--Enter password only for first installation of SE.-->
+		<!--Password is required for Orion Platform 2019.2 and later.)-->  
+		<WebConsolePassword></WebConsolePassword>
     </InstallerConfiguration>
     <Host>
         <Info>

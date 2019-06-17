@@ -132,6 +132,20 @@
                 "description": "Provide admin password for the virtual machine"
             }
         },
+        "appUserName": {
+            "type": "string",
+            "defaultValue": "Admin",
+            "metadata": {
+                "description": "Provide username for the application"
+            }
+        },
+        "appUserPassword": {
+            "type": "securestring",
+            "defaultValue": "admin",
+            "metadata": {
+                "description": "Provide password for the application"
+            }
+        },
 		"dbServerName": {
             "type": "string",
             "defaultValue": "orionserver",
@@ -399,7 +413,7 @@
 					"[variables('scriptFileUri')]"
 				  ]},
 				  "protectedSettings": {
-				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'))]"
+				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'),' -appUserName ',parameters('appUserName'),' -appUserPassword ',parameters('appUserPassword'))]"
 				}            
 			  }
 			}
