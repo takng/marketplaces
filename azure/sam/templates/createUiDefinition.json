@@ -24,6 +24,29 @@
 					"regex": "^[a-z0-9A-Z-]{3,79}$",
 					"validationMessage": "The App Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
 				}
+			},
+			{
+				"name": "appUserName",
+				"type": "Microsoft.Common.TextBox",
+				"label": "App UserName",
+				"toolTip": "Provide username",
+				"defaultValue": "admin",
+				"constraints": {
+					"required": true,
+					"regex": "^[a-z0-9A-Z-]{3,79}$",
+					"validationMessage": "The App UserName must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+				}
+			},
+			{
+				"name": "appUserPassword",
+				"type": "Microsoft.Common.TextBox",
+				"label": "App UserPassword",
+				"toolTip": "Provide password",
+				"constraints": {
+					"required": true,
+					"regex": "^[a-z0-9A-Z-]{3,79}$",
+					"validationMessage": "The App UserPassword must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+				}
 			}
 		],
 		"steps": [
@@ -56,7 +79,7 @@
 					{
 						"name": "adminUserName",
 						"type": "Microsoft.Compute.UserNameTextBox",
-						"label": "Admin username",
+						"label": "VM UserName",
 						"osPlatform": "Windows",
 						"constraints": {
 							"required": true
@@ -402,6 +425,8 @@
 		"outputs": {
 			"location": "[location()]",
 			"virtualMachineName": "[basics('appName')]",	
+			"appUserName": "[basics('appUserName')]",	
+			"appUserPassword": "[basics('appUserPassword')]",	
 			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",			
 			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",			
 			"image": "[steps('OSDetails').image]",
