@@ -17,7 +17,7 @@
 				"name": "appName",
 				"type": "Microsoft.Common.TextBox",
 				"label": "App Name",
-				"toolTip": "orion will be accessed via http://[appname]:8787/orion",
+				"toolTip": "Orion Web Console will be accessed via http://[appname]:8787/orion",
 				"defaultValue": "samserver",
 				"constraints": {
 					"required": true,
@@ -26,26 +26,18 @@
 				}
 			},
 			{
-				"name": "appUserName",
-				"type": "Microsoft.Common.TextBox",
-				"label": "App UserName",
-				"toolTip": "Provide username",
-				"defaultValue": "admin",
-				"constraints": {
-					"required": true,
-					"regex": "^[a-z0-9A-Z-]{3,79}$",
-					"validationMessage": "The App UserName must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
-				}
-			},
-			{
 				"name": "appUserPassword",
-				"type": "Microsoft.Common.TextBox",
-				"label": "App UserPassword",
-				"toolTip": "Provide password",
+				"type": "Microsoft.Common.PasswordBox",				
+				"label": {
+					"password": "Admin Password for Orion Web Console",
+					"confirmPassword": "Confirm password"
+				},
+				"toolTip": "Provide SAM application password to access Orion Web Console using \"Admin\" user",
 				"constraints": {
-					"required": true,
-					"regex": "^[a-z0-9A-Z-]{3,79}$",
-					"validationMessage": "The App UserPassword must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+					"required": true
+				},
+				"options": {
+					"hideConfirmation": true
 				}
 			}
 		],
@@ -122,7 +114,7 @@
 						"type": "Microsoft.Common.InfoBox",
 						"options": {
 							"icon": "Info",
-							"text": "Recommended size: \n CPU: Quad core processor \n Hard drive space: 20 GB \n Memory: 16 GB",
+							"text": "Recommended size: \n Standard DS4v2",
 							"uri": "https://documentation.solarwinds.com/en/success_center/SAM/Content/System_Requirements/SAM_6-8_system_requirements.htm"
 						}
 					}
@@ -364,7 +356,7 @@
 								"type": "Microsoft.Common.InfoBox",
 								"options": {
 									"icon": "Info",
-									"text": "Minimum Recommendation : Standard S3",
+									"text": "Recommendation : Standard S3",
 									"uri": "https://documentation.solarwinds.com/en/Success_Center/orionplatform/Content/install-orion-azure.htm"
 								}
 							},

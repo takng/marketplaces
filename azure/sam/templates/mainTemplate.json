@@ -140,7 +140,7 @@
             }
         },
         "appUserPassword": {
-            "type": "securestring",
+            "type": "string",
             "defaultValue": "admin",
             "metadata": {
                 "description": "Provide password for the application"
