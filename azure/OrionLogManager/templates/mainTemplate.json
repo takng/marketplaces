@@ -221,6 +221,8 @@
 		"silentConfigName" : "[if(equals(parameters('isStandard'), bool('true')), 'config/standard.xml', 'config/express.xml')]",
 		"silentConfigUri": "[uri(parameters('_artifactsLocation'), concat(variables('silentConfigName'), parameters('_artifactsLocationSasToken')))]",
 				
+        "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-OrionLogManager.exe', parameters('_artifactsLocationSasToken')))]",
+				
         "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('installation_script.ps1', parameters('_artifactsLocationSasToken')))]",
 		"publicIpAddressId": {
 			"id": "[resourceId(parameters('publicIpResourceGroupName'), 'Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName'))]"
@@ -304,6 +306,19 @@
                         "sourcePortRange": "*",
                         "destinationAddressPrefix": "*",
                         "destinationPortRange": "443"
+                    }
+                },
+                {
+                    "name": "OrionWebConsole8787",
+                    "properties": {
+                        "priority": 1030,
+                        "protocol": "TCP",
+                        "access": "Allow",
+                        "direction": "Inbound",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "8787"
                     }
                 }
               ]
@@ -412,7 +427,7 @@
 					"[variables('scriptFileUri')]"
 				  ]},
 				  "protectedSettings": {
-				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'),' -olmServerName ', parameters('olmServerName'),' -olmDatabaseName ',parameters('olmDatabaseName'),' -olmUserName ',parameters('olmUserName'),' -olmPassword ',parameters('olmPassword'))]"
+				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'))]"
 				}            
 			  }
 			}
