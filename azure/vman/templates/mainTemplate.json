@@ -15,6 +15,13 @@
                 "description": "Subnet Name needs to be provided"
             }
         },
+		"virtualNetworkNewOrExisting": {
+			"type": "string",
+			"defaultValue": "new",
+			"metadata": {
+				"description": "Determines whether or not a new virtual network should be provisioned."
+			}
+		},
         "virtualNetworkName": {
             "type": "string",
             "metadata": {
@@ -37,6 +44,13 @@
                 "description": "Subnets for the virtual network"
             }
         },
+		"publicIpNewOrExisting": {
+			"type": "string",
+			"defaultValue": "new",
+			"metadata": {
+				"description": "Determines whether or not a new public ip should be provisioned."
+			}
+		},
         "publicIpAddressName": {
             "type": "string",
             "defaultValue": "vmanserver-ip",
@@ -44,6 +58,20 @@
                 "description": "Public IP Address Name for the VM"
             }
         },
+		"publicIpDns": {
+			"type": "string",
+			"defaultValue": "[concat('vmanserver-', uniqueString(resourceGroup().id))]",
+			"metadata": {
+				"description": "DNS of the public ip address for the VM"
+			}
+		},
+		"publicIpResourceGroupName": {
+			"type": "string",
+			"defaultValue": "[resourceGroup().name]",
+			"metadata": {
+				"description": "Name of the resource group for the public ip address"
+			}
+		},
         "publicIpAddressType": {
             "type": "string",
             "defaultValue": "Dynamic",
@@ -106,7 +134,7 @@
         },
 		"dbServerName": {
             "type": "string",
-            "defaultValue": "",
+            "defaultValue": "orionserver",
             "metadata": {
                 "description": "Provide server name for the azure sql"
             }
@@ -162,10 +190,16 @@
         }
     },
     "variables": {		
-		"productsToInstall" : "VMAN",
-	    "typeOfInstallation" : "[string(parameters('isStandard'))]",
-		"databaseServer": "[concat(parameters('dbServerName'),'.database.windows.net')]",
+		"silentConfigName" : "[if(equals(parameters('isStandard'), bool('true')), 'config/standard.xml', 'config/express.xml')]",
+        "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat(variables('silentConfigName'), parameters('_artifactsLocationSasToken')))]",
+        
+        "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-SAM.exe', parameters('_artifactsLocationSasToken')))]",
+				
         "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('installation_script.ps1', parameters('_artifactsLocationSasToken')))]",
+		"publicIpAddressId": {
+			"id": "[resourceId(parameters('publicIpResourceGroupName'), 'Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName'))]"
+        },
+        
 		"networkInterfaceName": "[concat(parameters('virtualMachineName'),'-nic')]",
 		"networkSecurityGroupName": "[concat(parameters('virtualMachineName'),'-nsg')]",
         "nsgId": "[resourceId(parameters('virtualMachineRG'), 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
@@ -204,9 +238,7 @@
                                 "id": "[variables('subnetRef')]"
                             },
                             "privateIPAllocationMethod": "Dynamic",
-                            "publicIpAddress": {
-                                "id": "[resourceId(parameters('virtualMachineRG'), 'Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
-                            }
+                            "publicIPAddress": "[if(not(equals(parameters('publicIpNewOrExisting'), 'none')), variables('publicIpAddressId') , json('null'))]"
                         }
                     }
                 ],
@@ -247,11 +279,25 @@
                         "destinationAddressPrefix": "*",
                         "destinationPortRange": "443"
                     }
+                },
+                {
+                    "name": "OrionWebConsole8787",
+                    "properties": {
+                        "priority": 1030,
+                        "protocol": "TCP",
+                        "access": "Allow",
+                        "direction": "Inbound",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "8787"
+                    }
                 }
               ]
            }
         },
         {
+            "condition": "[equals(parameters('virtualNetworkNewOrExisting'), 'new')]",
             "name": "[parameters('virtualNetworkName')]",
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2018-11-01",
@@ -271,12 +317,16 @@
             }
         },
         {
+            "condition": "[equals(parameters('publicIpNewOrExisting'), 'new')]",
             "name": "[parameters('publicIpAddressName')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "2018-08-01",
             "location": "[parameters('location')]",
             "properties": {
-                "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
+                "publicIpAllocationMethod": "[parameters('publicIpAddressType')]",
+				"dnsSettings": {
+					"domainNameLabel": "[parameters('publicIpDns')]"
+				}
             },
             "sku": {
                 "name": "[parameters('publicIpAddressSku')]"
@@ -349,7 +399,7 @@
 					"[variables('scriptFileUri')]"
 				  ]},
 				  "protectedSettings": {
-				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-typeOfInstallation ', variables('typeOfInstallation'),' -productsToInstall ', variables('productsToInstall'),' -dbServerName ', variables('databaseServer'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'))]"
+				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'))]"
 				}            
 			  }
 			}
