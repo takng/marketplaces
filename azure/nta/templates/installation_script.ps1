@@ -1,66 +1,60 @@
 param
 (
 	[string]$silentConfigUri,
+	[string]$installerUri,
 	[string]$dbServerName, 
 	[string]$databaseName, 
 	[string]$dbUserName, 
-	[string]$dbPassword,
-	[string]$ntaServerName, 
-	[string]$ntaDatabaseName, 
-	[string]$ntaUserName, 
-	[string]$ntaPassword
+	[string]$dbPassword
 )
 
 Start-Transcript -Path C:\postinstall.Log
 
+#download the silent installer config file from Artifacts
 write-host "downloading silent installer config file from $silentConfigUri"; [datetime]::Now
-$filePath = "C:\Windows\Temp\silentconfig.xml"
-Invoke-WebRequest $silentConfigUri -OutFile $filePath
-write-host "download completed: $filePath"; [datetime]::Now
+$configfilePath = "C:\Windows\Temp\silentconfig.xml"
+Invoke-WebRequest $silentConfigUri -OutFile $configfilePath
+write-host "download completed: $configfilePath"; [datetime]::Now
 
-$installer_path = "https://downloads.solarwinds.com/solarwinds/OnlineInstallers/RTM/NTA/Solarwinds-Orion-NTA.exe"
+#download the installer from Artifacts
+write-host "downloading installer from $installerUri"; [datetime]::Now
+$installer_name  = "Solarwinds-Orion-SAM.exe"
+Invoke-WebRequest $installerUri -OutFile "C:\Windows\Temp\$installer_name"
+write-host "download completed: $installerfilePath"; [datetime]::Now
 
-write-host "downloading solarwind online installer from $installer_path"; [datetime]::Now
-$installer_name  = "Solarwinds-Orion-NTA.exe"
-Invoke-WebRequest $installer_path -OutFile "C:\Windows\Temp\$installer_name"
-write-host "download completed: C:\Windows\Temp\$installer_name"; [datetime]::Now
-
+#update DB details
 $xml=New-Object XML
-$xml.Load($filePath)
+$xml.Load($configfilePath)
 
 if($xml.SilentConfig.Host.Info.Database)
 {
-	$oriondbnode=$xml.SilentConfig.Host.Info.Database	
-	$oriondbnode.ServerName=$dbServerName+$oriondbnode.ServerName
-	$oriondbnode.DatabaseName=$databaseName
-	$oriondbnode.User=$dbUserName    
-	$oriondbnode.UserPassword=$dbPassword
-	$oriondbnode.AccountPassword=$dbPassword
-
-	$ntadbnode=$xml.SilentConfig.Host.Info.NetFlowConfiguration.FlowStorageConfig
-	$ntadbnode.ServerName=$ntaServerName+$ntadbnode.ServerName
-	$ntadbnode.DatabaseName=$ntaDatabaseName
-	$ntadbnode.User=$ntaUserName    
-	$ntadbnode.UserPassword=$ntaPassword
-	$ntadbnode.AccountPassword=$ntaPassword
+	$node=$xml.SilentConfig.Host.Info.Database	
+	$node.ServerName=$dbServerName+$node.ServerName
+	$node.DatabaseName=$databaseName
+	$node.User=$dbUserName    
+	$node.UserPassword=$dbPassword
+	$node.AccountPassword=$dbPassword
 	
-	$xml.Save($filePath)
+	$xml.Save($configfilePath)
 }
 
+#create installer file
 New-Item C:\Windows\Temp\installer.ps1 -ItemType file
-Add-Content 'C:\Windows\Temp\installer.ps1' .\$installer_name" /s /ConfigFile=""$filePath"""
+Add-Content 'C:\Windows\Temp\installer.ps1' .\$installer_name" /s /ConfigFile=""$configfilePath"""
 
+#Start installation
 write-host ' starting installation solarwindinstaller....'; [datetime]::Now
-cd "C:\Windows\Temp"
+Set-Location "C:\Windows\Temp"
 .\installer.ps1
 write-host ' installation started solarwindinstaller....'; [datetime]::Now
 
+#check for if installation status
 $process_name = $installer_name.Substring(0,$installer_name.LastIndexOf('.'))
 while(1)
 {
 	$Solarwinds = Get-Process $process_name -ErrorAction SilentlyContinue
 	if ($Solarwinds) {
-		Sleep 5
+		Start-Sleep 5
 		Remove-Variable Solarwinds
 		continue;
 	}
@@ -71,6 +65,7 @@ while(1)
 	}
 }
 
+#delete files created in installation process
 write-host ' Deleting the files created in installation process'; [datetime]::Now
 
 $installer_file = "C:\Windows\Temp\installer.ps1"
