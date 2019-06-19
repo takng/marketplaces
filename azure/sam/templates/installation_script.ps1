@@ -34,7 +34,7 @@ $node.WebConsolePassword=$appUserPassword
 if($xml.SilentConfig.Host.Info.Database)
 {
 	$dbnode=$xml.SilentConfig.Host.Info.Database	
-	$dbnode.ServerName=$dbServerName+$dbnode.ServerName
+	$dbnode.ServerName=$dbServerName
 	$dbnode.DatabaseName=$databaseName
 	$dbnode.User=$dbUserName    
 	$dbnode.UserPassword=$dbPassword
