@@ -478,7 +478,7 @@
         },
         "App Link": {
             "type": "string",
-            "value": "[concat('http:\\', parameters('publicIpDns'),'.',parameters('location'),'.cloudapp.azure.com:8787/orion')]"
+            "value": "[concat('http://', parameters('publicIpDns'),'.',parameters('location'),'.cloudapp.azure.com:8787/orion')]"
         },
         "App default User": {
             "type": "string",
