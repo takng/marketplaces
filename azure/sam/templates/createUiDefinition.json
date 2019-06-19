@@ -292,19 +292,30 @@
 				"bladeTitle": "Installation Type",
 				"elements": [
 					{
+						"name": "virtualMachineNameLabel",
+						"type": "Microsoft.Common.TextBlock",
+						"options": {
+							"text": "Orion web console URL (Use App credentials to login): ",
+							"link": {
+								"label": "[concat('http://', steps('NetworkSettings').publicIpAddress.domainNameLabel, '.', location(),'.cloudapp.azure.com:8787/orion')]",
+								"uri": ""
+							}
+						}
+					},
+					{
 						"name": "installationtype",
 						"type": "Microsoft.Common.OptionsGroup",
 						"label": "Installation Type",
-						"defaultValue": "Lightweight",
+						"defaultValue": "Azure SQL DB",
 						"toolTip": "Select Installation Type",
 						"constraints": {
 							"allowedValues": [
 								{
-									"label": "Lightweight",
+									"label": "Azure SQL DB",
 									"value": false
 								},
 								{
-									"label": "Standard",
+									"label": "Microsoft SQL",
 									"value": true
 								}
 							],
@@ -317,7 +328,7 @@
 						"type": "Microsoft.Common.TextBlock",
 						"visible": "[not(steps('OrionInstallationType').installationtype)]",
 						"options": {
-							"text": "Installs SQL Server Express locally"
+							"text": "Orion will create a ‘Standard S3’ tier Azure SQL database \nwhich is recommended for most evaluations."
 						}
 					},
 					{
@@ -325,15 +336,7 @@
 						"type": "Microsoft.Common.TextBlock",
 						"visible": "[not(steps('OrionInstallationType').installationtype)]",
 						"options": {
-							"text": "Database size limited to 10 GB"
-						}
-					},
-					{
-						"name": "ShowExpressTextThird",
-						"type": "Microsoft.Common.TextBlock",
-						"visible": "[not(steps('OrionInstallationType').installationtype)]",
-						"options": {
-							"text": "Good for evaluating products on the orion platform"
+							"text": "Upgrading the Azure SQL database tier may be done any time through the Microsoft Azure Portal and does not require any changes to Orion "
 						}
 					},
 					{

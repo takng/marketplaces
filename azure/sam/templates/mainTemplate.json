@@ -204,9 +204,7 @@
         }
     },
     "variables": {		
-		"silentConfigName" : "[if(equals(parameters('isStandard'), bool('true')), 'config/standard.xml', 'config/express.xml')]",
-        "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat(variables('silentConfigName'), parameters('_artifactsLocationSasToken')))]",
-        
+        "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat('config/standard.xml', parameters('_artifactsLocationSasToken')))]",
         "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-SAM.exe', parameters('_artifactsLocationSasToken')))]",
 				
         "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('installation_script.ps1', parameters('_artifactsLocationSasToken')))]",
@@ -217,7 +215,12 @@
 		"networkInterfaceName": "[concat(parameters('virtualMachineName'),'-nic')]",
 		"networkSecurityGroupName": "[concat(parameters('virtualMachineName'),'-nsg')]",
         "nsgId": "[resourceId(parameters('virtualMachineRG'), 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
-        "subnetRef": "[resourceId(parameters('virtualMachineRG'),'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]"		
+        "subnetRef": "[resourceId(parameters('virtualMachineRG'),'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
+
+        "sqlServerName": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbServerName'), concat('oriondbserver', uniqueString(subscription().id, resourceGroup().id)))]",
+        "sqlDatabaseName": "[if(equals(parameters('isStandard'), bool('true')), parameters('databaseName'), concat('samdatabase', uniqueString(subscription().id, resourceGroup().id)))]",
+        "sqlDatabaseUserName": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbUserName'), parameters('adminUsername'))]",
+        "sqlDatabasePassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbPassword'), parameters('adminPassword'))]"
     },
     "resources": [
 		{ 
@@ -232,7 +235,7 @@
 					"resources": []
 				}
 			}
-		},
+        },
         {
             "name": "[variables('networkInterfaceName')]",
             "type": "Microsoft.Network/networkInterfaces",
@@ -347,12 +350,63 @@
             }
         },
         {
+            "condition": "[equals(parameters('isStandard'), bool('false'))]",
+            "name": "[variables('sqlServerName')]",
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2015-05-01-preview",
+            "location": "[parameters('location')]",
+            "tags": {
+              "displayName": "SqlServer"
+            },
+            "properties": {
+              "administratorLogin": "[variables('sqlDatabaseUserName')]",
+              "administratorLoginPassword": "[variables('sqlDatabasePassword')]",
+              "version": "12.0"
+            },
+            "resources": [
+              {
+                "name": "[variables('sqlDatabaseName')]",
+                "type": "databases",
+                "apiVersion": "2017-10-01-preview",
+                "location": "[parameters('location')]",
+                "tags": {
+                  "displayName": "Database"
+                },
+                "properties": {
+                  "collation": "SQL_Latin1_General_CP1_CI_AS"
+                },
+                "sku": {
+                    "name": "S3",
+                    "tier": "Standard"
+                } ,
+                "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"                
+                ]
+              },
+              {
+                "name": "AllowAllMicrosoftAzureIps",
+                "type": "firewallRules",
+                "apiVersion": "2017-10-01-preview",
+                "location": "[parameters('location')]",
+                "properties": {
+                  "endIpAddress": "0.0.0.0",
+                  "startIpAddress": "0.0.0.0"
+                },
+                "dependsOn": [
+                    "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"
+                ]
+              }
+           ]
+        },
+        {
             "name": "[parameters('virtualMachineName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-06-01",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
+                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]",
+                "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]",
+                "[variables('sqlDatabaseName')]"
             ],
             "properties": {
                 "hardwareProfile": {
@@ -413,7 +467,7 @@
 					"[variables('scriptFileUri')]"
 				  ]},
 				  "protectedSettings": {
-				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'),' -appUserName ',parameters('appUserName'),' -appUserPassword ',parameters('appUserPassword'))]"
+				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', variables('sqlServerName'),' -databaseName ',variables('sqlDatabaseName'),' -dbUserName ',variables('sqlDatabaseUserName'),' -dbPassword ',variables('sqlDatabasePassword'), ' -appUserName ',parameters('appUserName'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName'))]"
 				}            
 			  }
 			}
@@ -421,9 +475,21 @@
         }
     ],
     "outputs": {
-        "adminUsername": {
+        "VM Name": {
+            "type": "string",
+            "value": "[parameters('virtualMachineName')]"
+        },
+        "VM User name": {
             "type": "string",
             "value": "[parameters('adminUsername')]"
+        },
+        "App Link": {
+            "type": "string",
+            "value": "[concat('http:\\', parameters('virtualMachineName'), ':8787\\orion')]"
+        },
+        "App default User": {
+            "type": "string",
+            "value": "Admin"
         }
     }
 }
