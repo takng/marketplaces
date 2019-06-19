@@ -341,7 +341,7 @@
 								"type": "Microsoft.Common.InfoBox",
 								"options": {
 									"icon": "Info",
-									"text": "Minimum DTU : 50",
+									"text": "Minimum Recommendation : Standard S3",
 									"uri": "https://documentation.solarwinds.com/en/Success_Center/orionplatform/Content/install-orion-azure.htm"
 								}
 							},
@@ -349,11 +349,11 @@
 								"name": "dbServerName",
 								"type": "Microsoft.Common.TextBox",
 								"label": "Server Name",
-								"toolTip": "Provide server name and this will be appended to .database.windows.net",
+								"toolTip": "Fully qualified SQL server name. This should be an existing SQL server.",
 								"constraints": {
-									"regex": "^[a-z0-9A-Z-]{3,79}$",
+									"regex": "([^.]*\\.){3}",
 									"required": true,
-									"validationMessage": "The Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+									"validationMessage": "The SQL Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only alongwith FQDN(e.g database.windows.net). The sql server should be an existing server."
 								}
 							},
 							{

@@ -144,10 +144,6 @@
 						"constraints": {
 							"allowedValues": [
 								{
-									"label": "Premium SSD",
-									"value": "Premium_LRS"
-								},
-								{
 									"label": "Standard SSD",
 									"value": "StandardSSD_LRS"
 								},
@@ -345,7 +341,7 @@
 								"type": "Microsoft.Common.InfoBox",
 								"options": {
 									"icon": "Info",
-									"text": "Minimum DTU : 50",
+									"text": "Minimum Recommendation : Standard S3",
 									"uri": "https://documentation.solarwinds.com/en/Success_Center/orionplatform/Content/install-orion-azure.htm"
 								}
 							},
@@ -353,11 +349,11 @@
 								"name": "dbServerName",
 								"type": "Microsoft.Common.TextBox",
 								"label": "Server Name",
-								"toolTip": "Provide server name and this will be appended to .database.windows.net",
+								"toolTip": "Fully qualified SQL server name. This should be an existing SQL server.",
 								"constraints": {
-									"regex": "^[a-z0-9A-Z-]{3,79}$",
+									"regex": "([^.]*\\.){3}",
 									"required": true,
-									"validationMessage": "The Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+									"validationMessage": "The SQL Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only alongwith FQDN(e.g database.windows.net). The sql server should be an existing server."
 								}
 							},
 							{
@@ -405,24 +401,32 @@
 		],
 		"outputs": {
 			"location": "[location()]",
-			"subnetName": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.name]",
-			"virtualNetworkName": "[steps('NetworkSettings').virtualNetwork.name]",
 			"virtualMachineName": "[basics('appName')]",
+			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",			
+			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",			
 			"image": "[steps('OSDetails').image]",
 			"virtualMachineSize": "[steps('InfrastructureInformation').virtualMachineSize]",
-			"publicIpAddressName": "[steps('NetworkSettings').publicIpAddress.name]",
-			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",
 			"osDiskType": "[steps('OSDetails').osDiskType]",
+			
+			"virtualNetworkNewOrExisting": "[steps('NetworkSettings').virtualNetwork.newOrExisting]",
+			"virtualNetworkName": "[steps('NetworkSettings').virtualNetwork.name]",
+			"addressPrefixes": "[steps('NetworkSettings').virtualNetwork.addressPrefixes]",
+			"subnetName": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.name]",	
+			"subnetPrefix": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.addressPrefix]",			
 			"virtualMachineRG": "[steps('NetworkSettings').virtualNetwork.resourceGroup]",
+			
+			"publicIpNewOrExisting": "[steps('NetworkSettings').publicIpAddress.newOrExistingOrNone]",			
+			"publicIpAddressName": "[steps('NetworkSettings').publicIpAddress.name]",
+			"publicIpDns": "[steps('NetworkSettings').publicIpAddress.domainNameLabel]",
+			"publicIpResourceGroupName": "[steps('NetworkSettings').publicIpAddress.resourceGroup]",
 			"publicIpAddressType": "[steps('NetworkSettings').publicIpAddress.publicIPAllocationMethod]",
-			"addressPrefixes": "[steps('NetworkSettings').virtualNetwork.addressPrefixSize]",
-			"subnetPrefix": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.addressPrefixSize]",
-			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",
-			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",
+			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",	
+						
 			"dbServerName": "[steps('OrionInstallationType').AzureDbDetails.dbServerName]",
 			"databaseName": "[steps('OrionInstallationType').AzureDbDetails.databaseName]",
 			"dbUserName": "[steps('OrionInstallationType').AzureDbDetails.dbUserName]",
 			"dbPassword": "[steps('OrionInstallationType').AzureDbDetails.dbPassword]",
+			
 			"isStandard": "[steps('OrionInstallationType').installationtype]",
 			"windowsLicenseType": "[steps('OSDetails').windowsLicenseType]"
 		}
