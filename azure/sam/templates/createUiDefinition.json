@@ -29,10 +29,10 @@
 				"name": "appUserPassword",
 				"type": "Microsoft.Common.PasswordBox",				
 				"label": {
-					"password": "Admin Password for Orion Web Console",
+					"password": "Create Password for Orion Web Console \"Admin\" User",
 					"confirmPassword": "Confirm password"
 				},
-				"toolTip": "Provide SAM application password to access Orion Web Console using \"Admin\" user",
+				"toolTip": "Create SAM application password to access Orion Web Console for \"Admin\" user",
 				"constraints": {
 					"required": true
 				},
@@ -419,8 +419,7 @@
 		],
 		"outputs": {
 			"location": "[location()]",
-			"virtualMachineName": "[basics('appName')]",	
-			"appUserName": "[basics('appUserName')]",	
+			"virtualMachineName": "[basics('appName')]",
 			"appUserPassword": "[basics('appUserPassword')]",	
 			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",			
 			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",			

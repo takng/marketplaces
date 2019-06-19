@@ -132,13 +132,6 @@
                 "description": "Provide admin password for the virtual machine"
             }
         },
-        "appUserName": {
-            "type": "string",
-            "defaultValue": "Admin",
-            "metadata": {
-                "description": "Provide username for the application"
-            }
-        },
         "appUserPassword": {
             "type": "string",
             "defaultValue": "admin",
@@ -467,7 +460,7 @@
 					"[variables('scriptFileUri')]"
 				  ]},
 				  "protectedSettings": {
-				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', variables('sqlServerName'),' -databaseName ',variables('sqlDatabaseName'),' -dbUserName ',variables('sqlDatabaseUserName'),' -dbPassword ',variables('sqlDatabasePassword'), ' -appUserName ',parameters('appUserName'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName'))]"
+				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', variables('sqlServerName'),' -databaseName ',variables('sqlDatabaseName'),' -dbUserName ',variables('sqlDatabaseUserName'),' -dbPassword ',variables('sqlDatabasePassword'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName'))]"
 				}            
 			  }
 			}

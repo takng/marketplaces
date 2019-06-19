@@ -6,8 +6,7 @@ param
 	[string]$databaseName, 
 	[string]$dbUserName, 
 	[string]$dbPassword,
-	[string]$appUserName, 
-	[string]$appUserPassword
+	[string]$appUserPassword,
 	[string]$vmName
 )
 
@@ -30,7 +29,6 @@ $xml=New-Object XML
 $xml.Load($configfilePath)
 
 $node=$xml.SilentConfig.InstallerConfiguration
-$node.WebConsoleUserName=$appUserName
 $node.WebConsolePassword=$appUserPassword
 
 if($xml.SilentConfig.Host.Info.Database)
