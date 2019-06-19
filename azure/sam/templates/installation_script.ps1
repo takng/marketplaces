@@ -5,7 +5,8 @@ param
 	[string]$dbServerName, 
 	[string]$databaseName, 
 	[string]$dbUserName, 
-	[string]$dbPassword
+	[string]$dbPassword,
+	[string]$vmName
 )
 
 Start-Transcript -Path C:\postinstall.Log
@@ -36,6 +37,12 @@ if($xml.SilentConfig.Host.Info.Database)
 	$node.AccountPassword=$dbPassword
 	
 	$xml.Save($configfilePath)
+}
+
+if($xml.SilentConfig.Host.Info.Website)
+{
+	$nodeWebsite = $xml.SilentConfig.Host.Info.Website
+	$nodeWebsite.CertificateResolvableCN = $vmName
 }
 
 #create installer file

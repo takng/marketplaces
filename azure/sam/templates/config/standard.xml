@@ -36,6 +36,11 @@
                 <LaunchWebConsole>false</LaunchWebConsole>
                 <ConfigurationSkipped_IISNotInstalled>false</ConfigurationSkipped_IISNotInstalled>
                 <EnableWindowsLogin>true</EnableWindowsLogin>
+				<CertificateResolvableCN>insert_machine_name_here</CertificateResolvableCN>
+				<CertificateHash>AutoGenerate</CertificateHash>
+				<CertificateName>Generate Self-Signed Certificate...</CertificateName> 
+				<EnableHTTPS>true</EnableHTTPS>              
+				<SkipHTTPBinding>false</SkipHTTPBinding>
             </Website>
         </Info>
     </Host>
