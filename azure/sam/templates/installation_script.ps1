@@ -6,6 +6,8 @@ param
 	[string]$databaseName, 
 	[string]$dbUserName, 
 	[string]$dbPassword,
+	[string]$appUserName, 
+	[string]$appUserPassword
 	[string]$vmName
 )
 
@@ -27,17 +29,20 @@ write-host "download completed: $installerfilePath"; [datetime]::Now
 $xml=New-Object XML
 $xml.Load($configfilePath)
 
+$node=$xml.SilentConfig.InstallerConfiguration
+$node.WebConsoleUserName=$appUserName
+$node.WebConsolePassword=$appUserPassword
+
 if($xml.SilentConfig.Host.Info.Database)
 {
-	$node=$xml.SilentConfig.Host.Info.Database	
-	$node.ServerName=$dbServerName+$node.ServerName
-	$node.DatabaseName=$databaseName
-	$node.User=$dbUserName    
-	$node.UserPassword=$dbPassword
-	$node.AccountPassword=$dbPassword
-	
-	$xml.Save($configfilePath)
+	$dbnode=$xml.SilentConfig.Host.Info.Database	
+	$dbnode.ServerName=$dbServerName+$dbnode.ServerName
+	$dbnode.DatabaseName=$databaseName
+	$dbnode.User=$dbUserName    
+	$dbnode.UserPassword=$dbPassword
+	$dbnode.AccountPassword=$dbPassword
 }
+$xml.Save($configfilePath)
 
 if($xml.SilentConfig.Host.Info.Website)
 {
