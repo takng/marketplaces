@@ -40,13 +40,13 @@ if($xml.SilentConfig.Host.Info.Database)
 	$dbnode.UserPassword=$dbPassword
 	$dbnode.AccountPassword=$dbPassword
 }
-$xml.Save($configfilePath)
-
 if($xml.SilentConfig.Host.Info.Website)
 {
 	$nodeWebsite = $xml.SilentConfig.Host.Info.Website
 	$nodeWebsite.CertificateResolvableCN = $vmName
 }
+
+$xml.Save($configfilePath)
 
 #create installer file
 New-Item C:\Windows\Temp\installer.ps1 -ItemType file
