@@ -4,6 +4,10 @@
         <ProductsToInstall>SAM</ProductsToInstall>
         <AdvancedInstallMode>True</AdvancedInstallMode>
         <SkipConfigurationWizardRun>False</SkipConfigurationWizardRun>
+		<WebConsoleUserName>Admin</WebConsoleUserName>
+		<!--Enter password only for first installation of SE.-->
+		<!--Password is required for Orion Platform 2019.2 and later.)-->  
+		<WebConsolePassword></WebConsolePassword>
     </InstallerConfiguration>
     <Host>
         <Info>
@@ -36,6 +40,11 @@
                 <LaunchWebConsole>false</LaunchWebConsole>
                 <ConfigurationSkipped_IISNotInstalled>false</ConfigurationSkipped_IISNotInstalled>
                 <EnableWindowsLogin>true</EnableWindowsLogin>
+				<CertificateResolvableCN>insert_machine_name_here</CertificateResolvableCN>
+				<CertificateHash>AutoGenerate</CertificateHash>
+				<CertificateName>Generate Self-Signed Certificate...</CertificateName> 
+				<EnableHTTPS>true</EnableHTTPS>              
+				<SkipHTTPBinding>false</SkipHTTPBinding>
             </Website>
         </Info>
     </Host>
