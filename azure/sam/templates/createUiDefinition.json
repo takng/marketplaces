@@ -342,7 +342,7 @@
 					{
 						"name": "AzureDbDetails",
 						"type": "Microsoft.Common.Section",
-						"label": "Enter Azure DB details",
+						"label": "Enter DB details",
 						"elements": [
 							{
 								"name": "Createdb",
@@ -366,7 +366,7 @@
 							{
 								"name": "dbServerName",
 								"type": "Microsoft.Common.TextBox",
-								"label": "Server Name",
+								"label": "DB Server Name (Fully Qualified)",
 								"toolTip": "Fully qualified SQL server name. This should be an existing SQL server.",
 								"constraints": {
 									"regex": "([^.]*\\.){3}",
