@@ -193,7 +193,7 @@
 		"silentConfigName" : "[if(equals(parameters('isStandard'), bool('true')), 'config/standard.xml', 'config/express.xml')]",
         "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat(variables('silentConfigName'), parameters('_artifactsLocationSasToken')))]",
         
-        "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-SAM.exe', parameters('_artifactsLocationSasToken')))]",
+        "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-ToolsetWeb.exe', parameters('_artifactsLocationSasToken')))]",
 				
         "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('installation_script.ps1', parameters('_artifactsLocationSasToken')))]",
 		"publicIpAddressId": {
