@@ -132,6 +132,13 @@
                 "description": "Provide admin password for the virtual machine"
             }
         },
+        "appUserPassword": {
+            "type": "string",
+            "defaultValue": "admin",
+            "metadata": {
+                "description": "Provide password for the application"
+            }
+        },
 		"dbServerName": {
             "type": "string",
             "defaultValue": "orionserver",
@@ -174,6 +181,13 @@
                 "description": "Provide license type"
             }
         },
+        "ScalabilityEngine": {
+            "type": "string",
+            "defaultValue": "No",
+            "metadata": {
+                "description": "Open Ports to support Scalablity Engine"
+            }
+        },
         "_artifactsLocation": {
             "type": "string",
             "defaultValue": "[deployment().properties.templateLink.uri]",
@@ -190,10 +204,8 @@
         }
     },
     "variables": {		
-		"silentConfigName" : "[if(equals(parameters('isStandard'), bool('true')), 'config/standard.xml', 'config/express.xml')]",
-        "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat(variables('silentConfigName'), parameters('_artifactsLocationSasToken')))]",
-        
-        "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-SAM.exe', parameters('_artifactsLocationSasToken')))]",
+        "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat('config/standard.xml', parameters('_artifactsLocationSasToken')))]",
+        "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-UDT.exe', parameters('_artifactsLocationSasToken')))]",
 				
         "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('installation_script.ps1', parameters('_artifactsLocationSasToken')))]",
 		"publicIpAddressId": {
@@ -203,12 +215,140 @@
 		"networkInterfaceName": "[concat(parameters('virtualMachineName'),'-nic')]",
 		"networkSecurityGroupName": "[concat(parameters('virtualMachineName'),'-nsg')]",
         "nsgId": "[resourceId(parameters('virtualMachineRG'), 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
-        "subnetRef": "[resourceId(parameters('virtualMachineRG'),'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]"		
+        "subnetRef": "[resourceId(parameters('virtualMachineRG'),'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
+
+        "sqlServerName": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbServerName'), concat('oriondbserver', uniqueString(subscription().id, resourceGroup().id)))]",
+        "sqlDatabaseName": "[if(equals(parameters('isStandard'), bool('true')), parameters('databaseName'), concat('oriondatabase', uniqueString(subscription().id, resourceGroup().id)))]",
+        "sqlDatabaseUserName": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbUserName'), parameters('adminUsername'))]",
+        "sqlDatabasePassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbPassword'), parameters('adminPassword'))]",
+
+        "basicSecurityRules": [
+            {
+                "name": "HTTP80",
+                "properties": {
+                    "priority": 1010,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "80"
+                }
+            },
+            {
+                "name": "HTTPS443",
+                "properties": {
+                    "priority": 1020,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "443"
+                }
+            },
+            {
+                "name": "OrionWebConsole8787",
+                "properties": {
+                    "priority": 1030,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "8787"
+                }
+            }
+        ],
+        "ASEsecurityRules": [
+            {
+                "name": "HTTP80",
+                "properties": {
+                    "priority": 1010,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "80"
+                }
+            },
+            {
+                "name": "HTTPS443",
+                "properties": {
+                    "priority": 1020,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "443"
+                }
+            },
+            {
+                "name": "OrionWebConsole8787",
+                "properties": {
+                    "priority": 1030,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "8787"
+                }
+            },
+            {
+                "name": "ScalablityEngine1801",
+                "properties": {
+                    "priority": 1040,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "1801"
+                }
+            },
+            {
+                "name": "ScalablityEngine5671",
+                "properties": {
+                    "priority": 1050,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "5671"
+                }
+            },
+            {
+                "name": "ScalablityEngine17777",
+                "properties": {
+                    "priority": 1060,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "17777"
+                }
+            }
+        ],
+        "ports": "[if(equals(parameters('ScalabilityEngine'), 'No'), variables('basicSecurityRules'), variables('ASEsecurityRules'))]"
     },
     "resources": [
 		{ 
 			"apiVersion": "2018-05-01",
-			"name": "pid-ec90767a-8959-5706-9ce1-3191f99f1dd2",
+			"name": "pid-ec90767a-8959-5706-9ce1-3191f99f1dd2", 
 			"type": "Microsoft.Resources/deployments",
 			"properties": {
 				"mode": "Incremental",
@@ -218,7 +358,7 @@
 					"resources": []
 				}
 			}
-		},
+        },
         {
             "name": "[variables('networkInterfaceName')]",
             "type": "Microsoft.Network/networkInterfaces",
@@ -253,47 +393,7 @@
             "apiVersion": "2018-08-01",
             "location": "[parameters('location')]",
             "properties": {
-                "securityRules": [
-                {
-                    "name": "HTTP80",
-                    "properties": {
-                        "priority": 1010,
-                        "protocol": "TCP",
-                        "access": "Allow",
-                        "direction": "Inbound",
-                        "sourceAddressPrefix": "*",
-                        "sourcePortRange": "*",
-                        "destinationAddressPrefix": "*",
-                        "destinationPortRange": "80"
-                    }
-                },
-                {
-                    "name": "HTTPS443",
-                    "properties": {
-                        "priority": 1020,
-                        "protocol": "TCP",
-                        "access": "Allow",
-                        "direction": "Inbound",
-                        "sourceAddressPrefix": "*",
-                        "sourcePortRange": "*",
-                        "destinationAddressPrefix": "*",
-                        "destinationPortRange": "443"
-                    }
-                },
-                {
-                    "name": "OrionWebConsole8787",
-                    "properties": {
-                        "priority": 1030,
-                        "protocol": "TCP",
-                        "access": "Allow",
-                        "direction": "Inbound",
-                        "sourceAddressPrefix": "*",
-                        "sourcePortRange": "*",
-                        "destinationAddressPrefix": "*",
-                        "destinationPortRange": "8787"
-                    }
-                }
-              ]
+                "securityRules": "[variables('ports')]"
            }
         },
         {
@@ -333,12 +433,63 @@
             }
         },
         {
+            "condition": "[equals(parameters('isStandard'), bool('false'))]",
+            "name": "[variables('sqlServerName')]",
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2015-05-01-preview",
+            "location": "[parameters('location')]",
+            "tags": {
+              "displayName": "SqlServer"
+            },
+            "properties": {
+              "administratorLogin": "[variables('sqlDatabaseUserName')]",
+              "administratorLoginPassword": "[variables('sqlDatabasePassword')]",
+              "version": "12.0"
+            },
+            "resources": [
+              {
+                "name": "[variables('sqlDatabaseName')]",
+                "type": "databases",
+                "apiVersion": "2017-10-01-preview",
+                "location": "[parameters('location')]",
+                "tags": {
+                  "displayName": "Database"
+                },
+                "properties": {
+                  "collation": "SQL_Latin1_General_CP1_CI_AS"
+                },
+                "sku": {
+                    "name": "S3",
+                    "tier": "Standard"
+                } ,
+                "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"                
+                ]
+              },
+              {
+                "name": "AllowAllMicrosoftAzureIps",
+                "type": "firewallRules",
+                "apiVersion": "2017-10-01-preview",
+                "location": "[parameters('location')]",
+                "properties": {
+                  "endIpAddress": "0.0.0.0",
+                  "startIpAddress": "0.0.0.0"
+                },
+                "dependsOn": [
+                    "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"
+                ]
+              }
+           ]
+        },
+        {
             "name": "[parameters('virtualMachineName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-06-01",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
+                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]",
+                "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]",
+                "[variables('sqlDatabaseName')]"
             ],
             "properties": {
                 "hardwareProfile": {
@@ -399,7 +550,8 @@
 					"[variables('scriptFileUri')]"
 				  ]},
 				  "protectedSettings": {
-				  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', parameters('dbServerName'),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'))]"
+                  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', if(equals(parameters('isStandard'), bool('true')), variables('sqlServerName'), reference(resourceId(parameters('virtualMachineRG'), 'Microsoft.SQL/servers', variables('sqlServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -databaseName ',variables('sqlDatabaseName'),' -dbUserName ',variables('sqlDatabaseUserName'),' -dbPassword ',variables('sqlDatabasePassword'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName')) ]"
+
 				}            
 			  }
 			}
@@ -407,9 +559,21 @@
         }
     ],
     "outputs": {
-        "adminUsername": {
+        "VM Name": {
+            "type": "string",
+            "value": "[parameters('virtualMachineName')]"
+        },
+        "VM User name": {
             "type": "string",
             "value": "[parameters('adminUsername')]"
+        },
+        "App Link": {
+            "type": "string",
+            "value": "[concat('http://', parameters('publicIpDns'),'.',parameters('location'),'.cloudapp.azure.com:8787/orion')]"
+        },
+        "App default User": {
+            "type": "string",
+            "value": "Admin"
         }
     }
 }

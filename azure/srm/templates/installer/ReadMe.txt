@@ -1,0 +1,1 @@
+Please copy the latest online "Solarwinds-Orion-SRM.exe" in installer folder.

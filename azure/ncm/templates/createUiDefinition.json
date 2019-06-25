@@ -17,12 +17,27 @@
 				"name": "appName",
 				"type": "Microsoft.Common.TextBox",
 				"label": "App Name",
-				"toolTip": "orion will be accessed via http://[appname]:8787/orion",
+				"toolTip": "Orion Web Console will be accessed via http://[appname]:8787/orion",
 				"defaultValue": "ncmserver",
 				"constraints": {
 					"required": true,
 					"regex": "^[a-z0-9A-Z-]{3,79}$",
 					"validationMessage": "The App Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+				}
+			},
+			{
+				"name": "appUserPassword",
+				"type": "Microsoft.Common.PasswordBox",				
+				"label": {
+					"password": "Create Password for Orion Web Console \"Admin\" User",
+					"confirmPassword": "Confirm password"
+				},
+				"toolTip": "Create NCM application password to access Orion Web Console for \"Admin\" user",
+				"constraints": {
+					"required": true
+				},
+				"options": {
+					"hideConfirmation": true
 				}
 			}
 		],
@@ -56,7 +71,7 @@
 					{
 						"name": "adminUserName",
 						"type": "Microsoft.Compute.UserNameTextBox",
-						"label": "Admin username",
+						"label": "VM UserName",
 						"osPlatform": "Windows",
 						"constraints": {
 							"required": true
@@ -99,9 +114,7 @@
 						"type": "Microsoft.Common.InfoBox",
 						"options": {
 							"icon": "Info",
-							"text": "Recommended size: \n CPU: Quad core processor \n Hard drive space: 20 GB \n Memory: 8 GB",
-							"uri": "https://documentation.solarwinds.com/en/Success_Center/NPM/Content/System_Requirements/NPM_12-4_system_requirements.htm#Hardware_requirements"
-							
+							"text": "Recommended size: \n Standard DS4v2"
 						}
 					}
 				]
@@ -270,27 +283,67 @@
 			},
 			{
 				"name": "OrionInstallationType",
-				"label": "Orion Installation Type",
+				"label": "Orion Installation",
 				"subLabel": {
-					"preValidation": "Orion Installation Type",
+					"preValidation": "Orion Installation",
 					"postValidation": "Done!"
 				},
-				"bladeTitle": "Installation Type",
+				"bladeTitle": "Orion Installation",
 				"elements": [
+					{
+						"name": "virtualMachineNameLabel",
+						"type": "Microsoft.Common.TextBlock",
+						"options": {
+							"text": "Orion web console URL (Use App credentials to login): ",
+							"link": {
+								"label": "[concat('http://', steps('NetworkSettings').publicIpAddress.domainNameLabel, '.', location(),'.cloudapp.azure.com:8787/orion')]",
+								"uri": ""
+							}
+						}
+					},
+					{
+						"name": "ScalabilityEngine",
+						"type": "Microsoft.Common.OptionsGroup",
+						"label": "Support Scalablity Engine",
+						"defaultValue": "No",
+						"toolTip": "Checking \"Yes\", TCP inbound ports 1801, 5671, and 17777 are enabled",
+						"constraints": {
+							"allowedValues": [
+								{
+									"label": "No",
+									"value": "No"
+								},
+								{
+									"label": "Yes",
+									"value": "Yes"
+								}
+							],
+							"required": true
+						},
+						"visible": true
+					},
+					{
+						"name": "ScalabilityEngineText",
+						"type": "Microsoft.Common.TextBlock",
+						"options": {
+							"text": "Checking \"Yes\": TCP ports 1801, 5671, and 17777 are enabled by default on Virtual Machine to support Scalablity / Poller Engine"
+						},
+						"visible": true
+					},
 					{
 						"name": "installationtype",
 						"type": "Microsoft.Common.OptionsGroup",
 						"label": "Installation Type",
-						"defaultValue": "Lightweight",
+						"defaultValue": "Azure SQL DB",
 						"toolTip": "Select Installation Type",
 						"constraints": {
 							"allowedValues": [
 								{
-									"label": "Lightweight",
+									"label": "Azure SQL DB",
 									"value": false
 								},
 								{
-									"label": "Standard",
+									"label": "Microsoft SQL",
 									"value": true
 								}
 							],
@@ -303,7 +356,7 @@
 						"type": "Microsoft.Common.TextBlock",
 						"visible": "[not(steps('OrionInstallationType').installationtype)]",
 						"options": {
-							"text": "Installs SQL Server Express locally"
+							"text": "Orion will create a ‘Standard S3’ tier Azure SQL database \nwhich is recommended for most evaluations."
 						}
 					},
 					{
@@ -311,45 +364,35 @@
 						"type": "Microsoft.Common.TextBlock",
 						"visible": "[not(steps('OrionInstallationType').installationtype)]",
 						"options": {
-							"text": "Database size limited to 10 GB"
-						}
-					},
-					{
-						"name": "ShowExpressTextThird",
-						"type": "Microsoft.Common.TextBlock",
-						"visible": "[not(steps('OrionInstallationType').installationtype)]",
-						"options": {
-							"text": "Good for evaluating products on the orion platform"
+							"text": "Upgrading the Azure SQL database tier may be done any time through the Microsoft Azure Portal and does not require any changes to Orion "
 						}
 					},
 					{
 						"name": "AzureDbDetails",
 						"type": "Microsoft.Common.Section",
-						"label": "Enter Azure DB details",
+						"label": "Enter Microsoft SQL Server details",
 						"elements": [
 							{
 								"name": "Createdb",
 								"type": "Microsoft.Common.TextBlock",
 								"options": {
 									"link": {
-										"label": "Create new database",
+										"label": "Create new Azure SQL DB (minimum recommendation “Standard S3”)",
 										"uri": "https://portal.azure.com/#create/Microsoft.SQLDatabase"
 									}
 								}
 							},
 							{
-								"name": "DBSizeRecommendation",
-								"type": "Microsoft.Common.InfoBox",
+								"name": "ShowDBConnectionTest",
+								"type": "Microsoft.Common.TextBlock",
 								"options": {
-									"icon": "Info",
-									"text": "Minimum Recommendation : Standard S3",
-									"uri": "https://documentation.solarwinds.com/en/Success_Center/orionplatform/Content/install-orion-azure.htm"
+									"text": "Existing Azure SQL DB or SQL Server connection information:"
 								}
 							},
 							{
 								"name": "dbServerName",
 								"type": "Microsoft.Common.TextBox",
-								"label": "Server Name",
+								"label": "DB Server Name (Fully Qualified)",
 								"toolTip": "Fully qualified SQL server name. This should be an existing SQL server.",
 								"constraints": {
 									"regex": "([^.]*\\.){3}",
@@ -403,6 +446,7 @@
 		"outputs": {
 			"location": "[location()]",
 			"virtualMachineName": "[basics('appName')]",
+			"appUserPassword": "[basics('appUserPassword')]",	
 			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",			
 			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",			
 			"image": "[steps('OSDetails').image]",
@@ -414,7 +458,7 @@
 			"addressPrefixes": "[steps('NetworkSettings').virtualNetwork.addressPrefixes]",
 			"subnetName": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.name]",	
 			"subnetPrefix": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.addressPrefix]",			
-			"virtualMachineRG": "[steps('NetworkSettings').virtualNetwork.resourceGroup]",
+			"virtualMachineRG": "[steps('NetworkSettings').virtualNetwork.resourceGroup]",		
 			
 			"publicIpNewOrExisting": "[steps('NetworkSettings').publicIpAddress.newOrExistingOrNone]",			
 			"publicIpAddressName": "[steps('NetworkSettings').publicIpAddress.name]",
@@ -422,13 +466,15 @@
 			"publicIpResourceGroupName": "[steps('NetworkSettings').publicIpAddress.resourceGroup]",
 			"publicIpAddressType": "[steps('NetworkSettings').publicIpAddress.publicIPAllocationMethod]",
 			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",	
-						
+			
+			"ScalabilityEngine": "[steps('OrionInstallationType').ScalabilityEngine]",
+			"isStandard": "[steps('OrionInstallationType').installationtype]",
+			
 			"dbServerName": "[steps('OrionInstallationType').AzureDbDetails.dbServerName]",
 			"databaseName": "[steps('OrionInstallationType').AzureDbDetails.databaseName]",
 			"dbUserName": "[steps('OrionInstallationType').AzureDbDetails.dbUserName]",
 			"dbPassword": "[steps('OrionInstallationType').AzureDbDetails.dbPassword]",
 			
-			"isStandard": "[steps('OrionInstallationType').installationtype]",
 			"windowsLicenseType": "[steps('OSDetails').windowsLicenseType]"
 		}
 	}

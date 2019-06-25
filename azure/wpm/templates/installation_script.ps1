@@ -5,7 +5,9 @@ param
 	[string]$dbServerName, 
 	[string]$databaseName, 
 	[string]$dbUserName, 
-	[string]$dbPassword
+	[string]$dbPassword,
+	[string]$appUserPassword,
+	[string]$vmName
 )
 
 Start-Transcript -Path C:\postinstall.Log
@@ -18,7 +20,7 @@ write-host "download completed: $configfilePath"; [datetime]::Now
 
 #download the installer from Artifacts
 write-host "downloading installer from $installerUri"; [datetime]::Now
-$installer_name  = "Solarwinds-Orion-SAM.exe"
+$installer_name  = "Solarwinds-Orion-WPM.exe"
 Invoke-WebRequest $installerUri -OutFile "C:\Windows\Temp\$installer_name"
 write-host "download completed: $installerfilePath"; [datetime]::Now
 
@@ -26,17 +28,25 @@ write-host "download completed: $installerfilePath"; [datetime]::Now
 $xml=New-Object XML
 $xml.Load($configfilePath)
 
+$node=$xml.SilentConfig.InstallerConfiguration
+$node.WebConsolePassword=$appUserPassword
+
 if($xml.SilentConfig.Host.Info.Database)
 {
-	$node=$xml.SilentConfig.Host.Info.Database	
-	$node.ServerName=$dbServerName+$node.ServerName
-	$node.DatabaseName=$databaseName
-	$node.User=$dbUserName    
-	$node.UserPassword=$dbPassword
-	$node.AccountPassword=$dbPassword
-	
-	$xml.Save($configfilePath)
+	$dbnode=$xml.SilentConfig.Host.Info.Database	
+	$dbnode.ServerName=$dbServerName
+	$dbnode.DatabaseName=$databaseName
+	$dbnode.User=$dbUserName    
+	$dbnode.UserPassword=$dbPassword
+	$dbnode.AccountPassword=$dbPassword
 }
+if($xml.SilentConfig.Host.Info.Website)
+{
+	$nodeWebsite = $xml.SilentConfig.Host.Info.Website
+	$nodeWebsite.CertificateResolvableCN = $vmName
+}
+
+$xml.Save($configfilePath)
 
 #create installer file
 New-Item C:\Windows\Temp\installer.ps1 -ItemType file

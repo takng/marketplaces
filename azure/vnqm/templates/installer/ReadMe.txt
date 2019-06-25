@@ -1,0 +1,1 @@
+Please copy the latest online "Solarwinds-Orion-VNQM.exe" in installer folder.
