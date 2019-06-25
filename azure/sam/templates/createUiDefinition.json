@@ -114,8 +114,7 @@
 						"type": "Microsoft.Common.InfoBox",
 						"options": {
 							"icon": "Info",
-							"text": "Recommended size: \n Standard DS4v2",
-							"uri": "https://documentation.solarwinds.com/en/success_center/SAM/Content/System_Requirements/SAM_6-8_system_requirements.htm"
+							"text": "Recommended size: \n Standard DS4v2"
 						}
 					}
 				]
@@ -284,12 +283,12 @@
 			},
 			{
 				"name": "OrionInstallationType",
-				"label": "Orion Installation Type",
+				"label": "Orion Installation",
 				"subLabel": {
-					"preValidation": "Orion Installation Type",
+					"preValidation": "Orion Installation",
 					"postValidation": "Done!"
 				},
-				"bladeTitle": "Installation Type",
+				"bladeTitle": "Orion Installation",
 				"elements": [
 					{
 						"name": "virtualMachineNameLabel",
@@ -301,6 +300,35 @@
 								"uri": ""
 							}
 						}
+					},
+					{
+						"name": "ScalabilityEngine",
+						"type": "Microsoft.Common.OptionsGroup",
+						"label": "Support Scalablity Engine",
+						"defaultValue": "No",
+						"toolTip": "Checking \"Yes\", TCP inbound ports 1801, 5671, and 17777 are enabled",
+						"constraints": {
+							"allowedValues": [
+								{
+									"label": "No",
+									"value": "No"
+								},
+								{
+									"label": "Yes",
+									"value": "Yes"
+								}
+							],
+							"required": true
+						},
+						"visible": true
+					},
+					{
+						"name": "ScalabilityEngineText",
+						"type": "Microsoft.Common.TextBlock",
+						"options": {
+							"text": "Checking \"Yes\": TCP ports 1801, 5671, and 17777 are enabled by default on Virtual Machine to support Scalablity / Poller Engine"
+						},
+						"visible": true
 					},
 					{
 						"name": "installationtype",
@@ -342,25 +370,23 @@
 					{
 						"name": "AzureDbDetails",
 						"type": "Microsoft.Common.Section",
-						"label": "Enter DB details",
+						"label": "Enter Microsoft SQL Server details",
 						"elements": [
 							{
 								"name": "Createdb",
 								"type": "Microsoft.Common.TextBlock",
 								"options": {
 									"link": {
-										"label": "Create new database",
+										"label": "Create new Azure SQL DB (minimum recommendation “Standard S3”)",
 										"uri": "https://portal.azure.com/#create/Microsoft.SQLDatabase"
 									}
 								}
 							},
 							{
-								"name": "DBSizeRecommendation",
-								"type": "Microsoft.Common.InfoBox",
+								"name": "ShowDBConnectionTest",
+								"type": "Microsoft.Common.TextBlock",
 								"options": {
-									"icon": "Info",
-									"text": "Recommendation : Standard S3",
-									"uri": "https://documentation.solarwinds.com/en/Success_Center/orionplatform/Content/install-orion-azure.htm"
+									"text": "Existing Azure SQL DB or SQL Server connection information:"
 								}
 							},
 							{
@@ -440,13 +466,15 @@
 			"publicIpResourceGroupName": "[steps('NetworkSettings').publicIpAddress.resourceGroup]",
 			"publicIpAddressType": "[steps('NetworkSettings').publicIpAddress.publicIPAllocationMethod]",
 			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",	
-						
+			
+			"ScalabilityEngine": "[steps('OrionInstallationType').ScalabilityEngine]",
+			"isStandard": "[steps('OrionInstallationType').installationtype]",
+			
 			"dbServerName": "[steps('OrionInstallationType').AzureDbDetails.dbServerName]",
 			"databaseName": "[steps('OrionInstallationType').AzureDbDetails.databaseName]",
 			"dbUserName": "[steps('OrionInstallationType').AzureDbDetails.dbUserName]",
 			"dbPassword": "[steps('OrionInstallationType').AzureDbDetails.dbPassword]",
 			
-			"isStandard": "[steps('OrionInstallationType').installationtype]",
 			"windowsLicenseType": "[steps('OSDetails').windowsLicenseType]"
 		}
 	}

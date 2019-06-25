@@ -181,6 +181,13 @@
                 "description": "Provide license type"
             }
         },
+        "ScalabilityEngine": {
+            "type": "string",
+            "defaultValue": "No",
+            "metadata": {
+                "description": "Open Ports to support Scalablity Engine"
+            }
+        },
         "_artifactsLocation": {
             "type": "string",
             "defaultValue": "[deployment().properties.templateLink.uri]",
@@ -211,9 +218,132 @@
         "subnetRef": "[resourceId(parameters('virtualMachineRG'),'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
 
         "sqlServerName": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbServerName'), concat('oriondbserver', uniqueString(subscription().id, resourceGroup().id)))]",
-        "sqlDatabaseName": "[if(equals(parameters('isStandard'), bool('true')), parameters('databaseName'), concat('samdatabase', uniqueString(subscription().id, resourceGroup().id)))]",
+        "sqlDatabaseName": "[if(equals(parameters('isStandard'), bool('true')), parameters('databaseName'), concat('oriondatabase', uniqueString(subscription().id, resourceGroup().id)))]",
         "sqlDatabaseUserName": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbUserName'), parameters('adminUsername'))]",
-        "sqlDatabasePassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbPassword'), parameters('adminPassword'))]"
+        "sqlDatabasePassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbPassword'), parameters('adminPassword'))]",
+
+        "basicSecurityRules": [
+            {
+                "name": "HTTP80",
+                "properties": {
+                    "priority": 1010,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "80"
+                }
+            },
+            {
+                "name": "HTTPS443",
+                "properties": {
+                    "priority": 1020,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "443"
+                }
+            },
+            {
+                "name": "OrionWebConsole8787",
+                "properties": {
+                    "priority": 1030,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "8787"
+                }
+            }
+        ],
+        "ASEsecurityRules": [
+            {
+                "name": "HTTP80",
+                "properties": {
+                    "priority": 1010,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "80"
+                }
+            },
+            {
+                "name": "HTTPS443",
+                "properties": {
+                    "priority": 1020,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "443"
+                }
+            },
+            {
+                "name": "OrionWebConsole8787",
+                "properties": {
+                    "priority": 1030,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "8787"
+                }
+            },
+            {
+                "name": "ScalablityEngine1801",
+                "properties": {
+                    "priority": 1040,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "1801"
+                }
+            },
+            {
+                "name": "ScalablityEngine5671",
+                "properties": {
+                    "priority": 1050,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "5671"
+                }
+            },
+            {
+                "name": "ScalablityEngine17777",
+                "properties": {
+                    "priority": 1060,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "17777"
+                }
+            }
+        ],
+        "ports": "[if(equals(parameters('ScalabilityEngine'), 'No'), variables('basicSecurityRules'), variables('ASEsecurityRules'))]"
     },
     "resources": [
 		{ 
@@ -263,47 +393,7 @@
             "apiVersion": "2018-08-01",
             "location": "[parameters('location')]",
             "properties": {
-                "securityRules": [
-                {
-                    "name": "HTTP80",
-                    "properties": {
-                        "priority": 1010,
-                        "protocol": "TCP",
-                        "access": "Allow",
-                        "direction": "Inbound",
-                        "sourceAddressPrefix": "*",
-                        "sourcePortRange": "*",
-                        "destinationAddressPrefix": "*",
-                        "destinationPortRange": "80"
-                    }
-                },
-                {
-                    "name": "HTTPS443",
-                    "properties": {
-                        "priority": 1020,
-                        "protocol": "TCP",
-                        "access": "Allow",
-                        "direction": "Inbound",
-                        "sourceAddressPrefix": "*",
-                        "sourcePortRange": "*",
-                        "destinationAddressPrefix": "*",
-                        "destinationPortRange": "443"
-                    }
-                },
-                {
-                    "name": "OrionWebConsole8787",
-                    "properties": {
-                        "priority": 1030,
-                        "protocol": "TCP",
-                        "access": "Allow",
-                        "direction": "Inbound",
-                        "sourceAddressPrefix": "*",
-                        "sourcePortRange": "*",
-                        "destinationAddressPrefix": "*",
-                        "destinationPortRange": "8787"
-                    }
-                }
-              ]
+                "securityRules": "[variables('ports')]"
            }
         },
         {
