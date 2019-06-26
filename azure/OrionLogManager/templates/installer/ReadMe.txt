@@ -1,0 +1,1 @@
+Please copy the latest online "Solarwinds-Orion-OrionLogManager.exe" in installer folder.

@@ -4,6 +4,10 @@
         <ProductsToInstall>OrionLogManager</ProductsToInstall>
         <AdvancedInstallMode>True</AdvancedInstallMode>
         <SkipConfigurationWizardRun>False</SkipConfigurationWizardRun>
+		<WebConsoleUserName>Admin</WebConsoleUserName>
+		<!--Enter password only for first installation of SE.-->
+		<!--Password is required for Orion Platform 2019.2 and later.)-->  
+		<WebConsolePassword></WebConsolePassword>
     </InstallerConfiguration>
     <Host>
         <Info>
@@ -11,20 +15,23 @@
             <ReconfigureWebsite>true</ReconfigureWebsite>
             <ReconfigureServices>true</ReconfigureServices>
             <ReconfigurePermissions>true</ReconfigurePermissions>
-			<Database>
-				<CreateNewDatabase>false</CreateNewDatabase>
-				<DatabaseName>SolarWindsOrion</DatabaseName>
-				<ServerName>.database.windows.net</ServerName>
-				<!-- should SQL login be used, if set to 'false' windows authentication is used -->
-				<UseSQLSecurity>true</UseSQLSecurity>
-				<!-- sql server master users (usually 'sa') -->
-				<User>orionadmin</User>
-				<UserPassword></UserPassword>
-				<!-- sql server account details that will be used by Orion -->
-				<AccountType>NewSql</AccountType> <!-- other option ExistingSql -->
-				<Account>SolarWindsOrionDBUser</Account>
-				<AccountPassword></AccountPassword>
-			</Database>
+            <Database>
+                <CreateNewDatabase>false</CreateNewDatabase>
+                <!--(Sets flag to create new database during CW)-->
+                <UseSQLSecurity>true</UseSQLSecurity>
+                <!--(Enables SQL Server authentication)-->
+                <ServerName>OrionDB</ServerName>
+                <DatabaseName>SamDB</DatabaseName>
+                <!--(SQL server and database name, e.g.: localhost)-->                
+                <User>orionadmin</User>
+                <UserPassword> </UserPassword>
+                <!--(Azure SQL account)-->
+                <AccountType>NewSql</AccountType>
+                <!--(Orion database account access type. Other possible values: ExistingSql, ExistingWindows)-->
+                <Account>SolarWindsOrionDatabaseUser</Account>
+                <AccountPassword></AccountPassword>
+                <!--(Orion database account, e.g.: SolarwindsOrionDatabaseUser)-->
+            </Database>
             <Website>
                 <Folder>C:\InetPub\SolarWinds</Folder>
                 <Address>(All Unassigned)</Address>
@@ -33,6 +40,11 @@
                 <LaunchWebConsole>false</LaunchWebConsole>
                 <ConfigurationSkipped_IISNotInstalled>false</ConfigurationSkipped_IISNotInstalled>
                 <EnableWindowsLogin>true</EnableWindowsLogin>
+				<CertificateResolvableCN>insert_machine_name_here</CertificateResolvableCN>
+				<CertificateHash>AutoGenerate</CertificateHash>
+				<CertificateName>Generate Self-Signed Certificate...</CertificateName> 
+				<EnableHTTPS>true</EnableHTTPS>              
+				<SkipHTTPBinding>false</SkipHTTPBinding>
             </Website>
 			<OrionLogConfiguration>
 				<StorageConfig>
@@ -40,7 +52,7 @@
 					<CreateNewDatabase>false</CreateNewDatabase>
 					<!-- database name should different than main database -->
 					<DatabaseName>olmdb</DatabaseName>
-					<ServerName>.database.windows.net</ServerName>
+					<ServerName></ServerName>
 					<UseSQLSecurity>true</UseSQLSecurity>
 					<User>orionadmin</User>
 					<UserPassword></UserPassword>
