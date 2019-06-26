@@ -1,1 +1,1 @@
-Please copy the latest online "Solarwinds-Orion-SCM.exe" in installer folder.
+Please copy the latest online "Solarwinds-Orion-SCM.exe" in installer folder and delete this file before packaging and uploading.
