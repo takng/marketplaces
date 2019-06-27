@@ -7,6 +7,10 @@
     <!-- true - skips CW -->
     <SkipConfigurationWizardRun>False</SkipConfigurationWizardRun>
     <VerifyErrorStrings>finished due to error;Login failed for user;ERROR ConfigurationProgressScene</VerifyErrorStrings>
+    <WebConsoleUserName>Admin</WebConsoleUserName>
+		<!--Enter password only for first installation of SE.-->
+		<!--Password is required for Orion Platform 2019.2 and later.)-->  
+		<WebConsolePassword></WebConsolePassword>
   </InstallerConfiguration>
   <Host>
     <Info>
@@ -17,7 +21,7 @@
       <Database>
         <CreateNewDatabase>false</CreateNewDatabase>
         <DatabaseName>SolarWindsOrion</DatabaseName>
-        <ServerName>.database.windows.net</ServerName>
+        <ServerName>oriondbserver</ServerName>
         <!-- should SQL login be used, if set to 'false' windows authentication is used -->
 	      <UseSQLSecurity>true</UseSQLSecurity>
         <!-- sql server master users (usually 'sa') -->
@@ -36,6 +40,11 @@
         <LaunchWebConsole>false</LaunchWebConsole>
         <ConfigurationSkipped_IISNotInstalled>false</ConfigurationSkipped_IISNotInstalled>
         <EnableWindowsLogin>false</EnableWindowsLogin>
+        <CertificateResolvableCN>insert_machine_name_here</CertificateResolvableCN>
+				<CertificateHash>AutoGenerate</CertificateHash>
+				<CertificateName>Generate Self-Signed Certificate...</CertificateName> 
+				<EnableHTTPS>true</EnableHTTPS>              
+				<SkipHTTPBinding>false</SkipHTTPBinding>
       </Website>
       <NetFlowConfiguration>
         <FlowStorageConfig>
@@ -43,7 +52,7 @@
           <CreateNewDatabase>false</CreateNewDatabase>
           <!-- database name should different than main database -->
           <DatabaseName>ntadb</DatabaseName>
-          <ServerName>.database.windows.net</ServerName>
+          <ServerName>oriondbserver</ServerName>
 	        <UseSQLSecurity>true</UseSQLSecurity>
           <User>orionadmin</User>
           <UserPassword></UserPassword>

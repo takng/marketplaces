@@ -24,7 +24,7 @@ write-host "download completed: $configfilePath"; [datetime]::Now
 
 #download the installer from Artifacts
 write-host "downloading installer from $installerUri"; [datetime]::Now
-$installer_name  = "Solarwinds-Orion-SAM.exe"
+$installer_name  = "Solarwinds-Orion-OrionLogManager.exe"
 Invoke-WebRequest $installerUri -OutFile "C:\Windows\Temp\$installer_name"
 write-host "download completed: $installerfilePath"; [datetime]::Now
 

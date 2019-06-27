@@ -1,0 +1,1 @@
+Please copy the latest online "Solarwinds-Orion-NTA.exe" in installer folder and delete this file before packaging and uploading.

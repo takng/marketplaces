@@ -356,7 +356,7 @@
 						"type": "Microsoft.Common.TextBlock",
 						"visible": "[not(steps('OrionInstallationType').installationtype)]",
 						"options": {
-							"text": "Orion will create a \"Standard S3\" tier Azure SQL database \nwhich is recommended for most evaluations."
+							"text": "Orion will create a ‘Standard S3’ tier Azure SQL database \nwhich is recommended for most evaluations."
 						}
 					},
 					{
@@ -377,7 +377,7 @@
 								"type": "Microsoft.Common.TextBlock",
 								"options": {
 									"link": {
-										"label": "Create new Azure SQL DB (minimum recommendation 'Standard S3')",
+										"label": "Create new Azure SQL DB (minimum recommendation “Standard S3”)",
 										"uri": "https://portal.azure.com/#create/Microsoft.SQLDatabase"
 									}
 								}

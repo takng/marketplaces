@@ -233,7 +233,7 @@
     },
     "variables": {		
         "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat('config/standard.xml', parameters('_artifactsLocationSasToken')))]",
-        "installerUri": "[uri('https://raw.githubusercontent.com/solarwinds/marketplaces/master/azure/common/', concat('installer/Solarwinds-Orion-OrionLogManager.exe', parameters('_artifactsLocationSasToken')))]",
+        "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-OrionLogManager.exe', parameters('_artifactsLocationSasToken')))]",
 				
         "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('installation_script.ps1', parameters('_artifactsLocationSasToken')))]",
 		"publicIpAddressId": {
@@ -602,7 +602,7 @@
 					"[variables('scriptFileUri')]"
 				  ]},
 				  "protectedSettings": {
-                  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', if(equals(parameters('isStandard'), bool('true')), variables('sqlServerName'), reference(resourceId(parameters('virtualMachineRG'), 'Microsoft.SQL/servers', variables('sqlServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -databaseName ',variables('sqlDatabaseName'),' -dbUserName ',variables('sqlDatabaseUserName'),' -dbPassword ',variables('sqlDatabasePassword'),' olmDBServerName ', variables('olmDBServerName'),' olmDBName ', variables('olmDBName'),' olmDBUserName ', variables('olmDBUserName'),' olmDBPassword ', variables('olmDBPassword'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName'))]"
+                  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', if(equals(parameters('isStandard'), bool('true')), variables('sqlServerName'), reference(resourceId(parameters('virtualMachineRG'), 'Microsoft.SQL/servers', variables('sqlServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -databaseName ',variables('sqlDatabaseName'),' -dbUserName ',variables('sqlDatabaseUserName'),' -dbPassword ',variables('sqlDatabasePassword'),' -olmDBServerName ', if(equals(parameters('isStandard'), bool('true')), variables('olmDBServerName'), reference(resourceId(parameters('virtualMachineRG'), 'Microsoft.SQL/servers', variables('olmDBServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -olmDBName ', variables('olmDBName'),' -olmDBUserName ', variables('olmDBUserName'),' -olmDBPassword ', variables('olmDBPassword'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName'))]"
 
 				}            
 			  }
