@@ -296,7 +296,7 @@
 						"options": {
 							"text": "Orion web console URL (Use App credentials to login): ",
 							"link": {
-								"label": "[concat('http://', steps('NetworkSettings').publicIpAddress.domainNameLabel, '.', location(),'.cloudapp.azure.com:8787/orion')]",
+								"label": "[concat('https://', steps('NetworkSettings').publicIpAddress.domainNameLabel, '.', location(),'.cloudapp.azure.com:8787/orion')]",
 								"uri": ""
 							}
 						}
@@ -356,7 +356,7 @@
 						"type": "Microsoft.Common.TextBlock",
 						"visible": "[not(steps('OrionInstallationType').installationtype)]",
 						"options": {
-							"text": "Orion will create a ‘Standard S3’ tier Azure SQL database \nwhich is recommended for most evaluations."
+							"text": "Orion will create a 'Standard S3' tier Azure SQL database \nwhich is recommended for most evaluations."
 						}
 					},
 					{
@@ -377,7 +377,7 @@
 								"type": "Microsoft.Common.TextBlock",
 								"options": {
 									"link": {
-										"label": "Create new Azure SQL DB (minimum recommendation “Standard S3”)",
+										"label": "Create new Azure SQL DB (minimum recommendation \"Standard S3\")",
 										"uri": "https://portal.azure.com/#create/Microsoft.SQLDatabase"
 									}
 								}

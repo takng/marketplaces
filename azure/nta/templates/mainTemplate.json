@@ -250,10 +250,10 @@
         "sqlDatabaseUserName": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbUserName'), parameters('adminUsername'))]",
         "sqlDatabasePassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbPassword'), parameters('adminPassword'))]",
 
-        "olmDBServerName": "[if(equals(parameters('isStandard'), bool('true')), parameters('olmServerName'), variables('sqlServerName'))]",
-        "olmDBName": "[if(equals(parameters('isStandard'), bool('true')), parameters('olmDatabaseName'), concat('olmdatabase', uniqueString(subscription().id, resourceGroup().id)))]",
-        "olmDBUserName": "[if(equals(parameters('isStandard'), bool('true')), parameters('olmUserName'), parameters('adminUsername'))]",
-        "olmDBPassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('olmPassword'), parameters('adminPassword'))]",
+        "ntaDBServerName": "[if(equals(parameters('isStandard'), bool('true')), parameters('ntaServerName'), variables('sqlServerName'))]",
+        "ntaDBName": "[if(equals(parameters('isStandard'), bool('true')), parameters('ntaDatabaseName'), concat('ntadatabase', uniqueString(subscription().id, resourceGroup().id)))]",
+        "ntaDBUserName": "[if(equals(parameters('isStandard'), bool('true')), parameters('ntaUserName'), parameters('adminUsername'))]",
+        "ntaDBPassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('ntaPassword'), parameters('adminPassword'))]",
 
         "basicSecurityRules": [
             {
@@ -500,7 +500,7 @@
                 ]
               },
               {
-                "name": "[variables('olmDBName')]",
+                "name": "[variables('ntaDBName')]",
                 "type": "databases",
                 "apiVersion": "2017-10-01-preview",
                 "location": "[parameters('location')]",
@@ -621,7 +621,7 @@
         },
         "App Link": {
             "type": "string",
-            "value": "[concat('http://', parameters('publicIpDns'),'.',parameters('location'),'.cloudapp.azure.com:8787/orion')]"
+            "value": "[concat('https://', parameters('publicIpDns'),'.',parameters('location'),'.cloudapp.azure.com:8787/orion')]"
         },
         "App default User": {
             "type": "string",
