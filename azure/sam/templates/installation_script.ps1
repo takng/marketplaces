@@ -50,7 +50,7 @@ $xml.Save($configfilePath)
 
 #create installer file
 New-Item C:\Windows\Temp\installer.ps1 -ItemType file
-Add-Content 'C:\Windows\Temp\installer.ps1' .\$installer_name" /s /ConfigFile=""$configfilePath"""
+Add-Content 'C:\Windows\Temp\installer.ps1' .\$installer_name" /s /ConfigFile=""$configfilePath"" /AutoUpdate=false"
 
 #Start installation
 write-host ' starting installation solarwindinstaller....'; [datetime]::Now
