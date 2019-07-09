@@ -206,8 +206,8 @@
     "variables": {		
         "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat('config/standard.xml', parameters('_artifactsLocationSasToken')))]",
         "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-VNQM.exe', parameters('_artifactsLocationSasToken')))]",
-				
         "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('installation_script.ps1', parameters('_artifactsLocationSasToken')))]",
+        
 		"publicIpAddressId": {
 			"id": "[resourceId(parameters('publicIpResourceGroupName'), 'Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName'))]"
         },
@@ -221,6 +221,9 @@
         "sqlDatabaseName": "[if(equals(parameters('isStandard'), bool('true')), parameters('databaseName'), concat('oriondatabase', uniqueString(subscription().id, resourceGroup().id)))]",
         "sqlDatabaseUserName": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbUserName'), parameters('adminUsername'))]",
         "sqlDatabasePassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbPassword'), parameters('adminPassword'))]",
+
+        "dotnetInstallerUri": "[uri(parameters('_artifactsLocation'), 'installer/ndp48-web.exe')]",
+        "machineSetupScriptUri": "[uri(parameters('_artifactsLocation'), concat('config/OrionAzureSetup.zip', parameters('_artifactsLocationSasToken')))]",
 
         "basicSecurityRules": [
             {
@@ -528,6 +531,38 @@
 				"licenseType": "[if(equals(parameters('windowsLicenseType'), 'no'), 'None', 'Windows_Server')]"
             },     
 		   "resources": [
+            {
+                "apiVersion": "2018-06-01",
+                "type": "extensions",
+                "name": "machine-setup",
+                "location": "[parameters('location')]",
+                "dependsOn": [
+                    "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]",
+                    "[parameters('virtualMachineName')]"
+                ],
+                "properties": {
+                    "publisher": "Microsoft.Powershell",
+                    "type": "DSC",
+                    "typeHandlerVersion": "2.77",
+                    "autoUpgradeMinorVersion": "true",
+                    "settings": {
+                        "wmfVersion": "latest",
+                        "configuration": {
+                            "url": "[variables('machineSetupScriptUri')]",
+                            "script": "OrionAzureSetup.ps1",
+                            "function": "Net48Install"
+                        },
+                        "configurationArguments": {
+                            "installerUri": "[variables('dotnetInstallerUri')]"
+                        }
+                    },
+                    "protectedSettings": {
+                        "configurationArguments": {
+                            "sasToken": "[parameters('_artifactsLocationSasToken')]"
+                        }
+                    }
+                }
+            },
 			{
 			  "apiVersion": "2018-06-01",
 			  "type": "extensions",
@@ -535,7 +570,8 @@
 			  "location": "[parameters('location')]",
 			  "dependsOn": [
 				"[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]",
-				"[parameters('virtualMachineName')]"
+				"[parameters('virtualMachineName')]",
+                "machine-setup"
 			  ],
 			  "tags": {
 				"displayName": "config-app"
@@ -550,8 +586,7 @@
 					"[variables('scriptFileUri')]"
 				  ]},
 				  "protectedSettings": {
-                  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri ', variables('silentConfigUri'),' -installerUri ', variables('installerUri'),' -dbServerName ', if(equals(parameters('isStandard'), bool('true')), variables('sqlServerName'), reference(resourceId(parameters('virtualMachineRG'), 'Microsoft.SQL/servers', variables('sqlServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -databaseName ',variables('sqlDatabaseName'),' -dbUserName ',variables('sqlDatabaseUserName'),' -dbPassword ',variables('sqlDatabasePassword'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName')) ]"
-
+                  "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri \"', variables('silentConfigUri'),'\" -installerUri \"', variables('installerUri'),'\" -dbServerName ', if(equals(parameters('isStandard'), bool('true')), variables('sqlServerName'), reference(resourceId(parameters('virtualMachineRG'), 'Microsoft.SQL/servers', variables('sqlServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -databaseName ',variables('sqlDatabaseName'),' -dbUserName ',variables('sqlDatabaseUserName'),' -dbPassword ',variables('sqlDatabasePassword'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName')) ]"
 				}            
 			  }
 			}
