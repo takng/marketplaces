@@ -27,7 +27,7 @@
 			},
 			{
 				"name": "appUserPassword",
-				"type": "Microsoft.Common.PasswordBox",				
+				"type": "Microsoft.Common.PasswordBox",
 				"label": {
 					"password": "Create Password for Orion Web Console \"Admin\" User",
 					"confirmPassword": "Confirm password"
@@ -417,9 +417,9 @@
 								"label": "User Name",
 								"toolTip": "Provide user name",
 								"constraints": {
-									"regex": "^[a-z0-9A-Z-]{3,79}$",
+									"regex": "^[a-z0-9A-Z-]{2,79}$",
 									"required": true,
-									"validationMessage": "The User Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+									"validationMessage": "The User Name must be between 2 and 79 characters long and contain letters, numbers and hyphens only."
 								}
 							},
 							{
@@ -493,9 +493,9 @@
 								"label": "OLM DB User Name",
 								"toolTip": "Provide user name",
 								"constraints": {
-									"regex": "^[a-z0-9A-Z-]{3,79}$",
+									"regex": "^[a-z0-9A-Z-]{2,79}$",
 									"required": true,
-									"validationMessage": "The User Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+									"validationMessage": "The User Name must be between 2 and 79 characters long and contain letters, numbers and hyphens only."
 								}
 							},
 							{
@@ -522,40 +522,34 @@
 		"outputs": {
 			"location": "[location()]",
 			"virtualMachineName": "[basics('appName')]",
-			"appUserPassword": "[basics('appUserPassword')]",	
-			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",			
-			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",			
+			"appUserPassword": "[basics('appUserPassword')]",
+			"adminUsername": "[steps('InfrastructureInformation').adminUserName]",
+			"adminPassword": "[steps('InfrastructureInformation').vmPwd.password]",
 			"image": "[steps('OSDetails').image]",
 			"virtualMachineSize": "[steps('InfrastructureInformation').virtualMachineSize]",
 			"osDiskType": "[steps('OSDetails').osDiskType]",
-			
 			"virtualNetworkNewOrExisting": "[steps('NetworkSettings').virtualNetwork.newOrExisting]",
 			"virtualNetworkName": "[steps('NetworkSettings').virtualNetwork.name]",
 			"addressPrefixes": "[steps('NetworkSettings').virtualNetwork.addressPrefixes]",
-			"subnetName": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.name]",	
-			"subnetPrefix": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.addressPrefix]",			
-			"virtualMachineRG": "[steps('NetworkSettings').virtualNetwork.resourceGroup]",		
-			
-			"publicIpNewOrExisting": "[steps('NetworkSettings').publicIpAddress.newOrExistingOrNone]",			
+			"subnetName": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.name]",
+			"subnetPrefix": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.addressPrefix]",
+			"virtualMachineRG": "[steps('NetworkSettings').virtualNetwork.resourceGroup]",
+			"publicIpNewOrExisting": "[steps('NetworkSettings').publicIpAddress.newOrExistingOrNone]",
 			"publicIpAddressName": "[steps('NetworkSettings').publicIpAddress.name]",
 			"publicIpDns": "[steps('NetworkSettings').publicIpAddress.domainNameLabel]",
 			"publicIpResourceGroupName": "[steps('NetworkSettings').publicIpAddress.resourceGroup]",
 			"publicIpAddressType": "[steps('NetworkSettings').publicIpAddress.publicIPAllocationMethod]",
-			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",	
-			
+			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",
 			"ScalabilityEngine": "[steps('OrionInstallationType').ScalabilityEngine]",
 			"isStandard": "[steps('OrionInstallationType').installationtype]",
-			
 			"dbServerName": "[steps('OrionInstallationType').AzureDbDetails.dbServerName]",
 			"databaseName": "[steps('OrionInstallationType').AzureDbDetails.databaseName]",
 			"dbUserName": "[steps('OrionInstallationType').AzureDbDetails.dbUserName]",
 			"dbPassword": "[steps('OrionInstallationType').AzureDbDetails.dbPassword]",
-
 			"olmServerName": "[steps('OLMDatabaseDetails').OLMDBDetails.olmServerName]",
 			"olmDatabaseName": "[steps('OLMDatabaseDetails').OLMDBDetails.olmDatabaseName]",
 			"olmUserName": "[steps('OLMDatabaseDetails').OLMDBDetails.olmUserName]",
 			"olmPassword": "[steps('OLMDatabaseDetails').OLMDBDetails.olmPassword]",
-			
 			"windowsLicenseType": "[steps('OSDetails').windowsLicenseType]"
 		}
 	}

@@ -417,9 +417,9 @@
 								"label": "User Name",
 								"toolTip": "Provide user name",
 								"constraints": {
-									"regex": "^[a-z0-9A-Z-]{3,79}$",
+									"regex": "^[a-z0-9A-Z-]{2,79}$",
 									"required": true,
-									"validationMessage": "The User Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+									"validationMessage": "The User Name must be between 2 and 79 characters long and contain letters, numbers and hyphens only."
 								}
 							},
 							{

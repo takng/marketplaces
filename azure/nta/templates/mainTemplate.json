@@ -141,7 +141,7 @@
         },
 		"dbServerName": {
             "type": "string",
-            "defaultValue": "orionserver",
+            "defaultValue": "[concat('oriondbserver', uniqueString(subscription().id, resourceGroup().id))]",
             "metadata": {
                 "description": "Provide server name for the azure sql"
             }
@@ -155,21 +155,21 @@
         },
 		"dbUserName": {
             "type": "string",
-            "defaultValue": "sa",
+            "defaultValue": "orionadmin",
             "metadata": {
                 "description": "Provide user name for the azure sql"
             }
         },
 		"dbPassword": {
-            "type": "string",
-            "defaultValue": "pwd",
+            "type": "securestring",
+            "defaultValue": "[parameters('adminPassword')]",
             "metadata": {
                 "description": "Provide password for the azure sql"
             }
         },
         "ntaServerName": {
             "type": "string",
-            "defaultValue": "orionntaserver",
+            "defaultValue": "[concat('orionntaserver', uniqueString(subscription().id, resourceGroup().id))]",
             "metadata": {
                 "description": "Provide server name for the azure sql"
             }
@@ -183,14 +183,14 @@
         },
 		"ntaUserName": {
             "type": "string",
-            "defaultValue": "sa",
+            "defaultValue": "orionadmin",
             "metadata": {
                 "description": "Provide user name for the azure sql"
             }
         },
 		"ntaPassword": {
-            "type": "string",
-            "defaultValue": "pwd",
+            "type": "securestring",
+            "defaultValue": "[parameters('adminPassword')]",
             "metadata": {
                 "description": "Provide password for the azure sql"
             }
@@ -472,7 +472,7 @@
             "condition": "[equals(parameters('isStandard'), bool('false'))]",
             "name": "[variables('sqlServerName')]",
             "type": "Microsoft.Sql/servers",
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2017-10-01-preview",
             "location": "[parameters('location')]",
             "tags": {
               "displayName": "SqlServer"
@@ -491,16 +491,16 @@
                 "tags": {
                   "displayName": "Database"
                 },
+                "dependsOn": [
+                    "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"                
+                ],
                 "properties": {
                   "collation": "SQL_Latin1_General_CP1_CI_AS"
                 },
                 "sku": {
                     "name": "S3",
                     "tier": "Standard"
-                } ,
-                "dependsOn": [
-                        "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"                
-                ]
+                }                
               },
               {
                 "name": "[variables('ntaDBName')]",
@@ -510,29 +510,29 @@
                 "tags": {
                   "displayName": "Database"
                 },
+                "dependsOn": [
+                    "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"                
+                ],
                 "properties": {
                   "collation": "SQL_Latin1_General_CP1_CI_AS"
                 },
                 "sku": {
                     "name": "S3",
                     "tier": "Standard"
-                } ,
-                "dependsOn": [
-                        "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"                
-                ]
+                }
               },
               {
                 "name": "AllowAllMicrosoftAzureIps",
                 "type": "firewallRules",
                 "apiVersion": "2017-10-01-preview",
                 "location": "[parameters('location')]",
+                "dependsOn": [
+                    "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"
+                ],
                 "properties": {
                   "endIpAddress": "0.0.0.0",
                   "startIpAddress": "0.0.0.0"
-                },
-                "dependsOn": [
-                    "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"
-                ]
+                }
               }
            ]
         },
@@ -589,8 +589,7 @@
                 "name": "machine-setup",
                 "location": "[parameters('location')]",
                 "dependsOn": [
-                    "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]",
-                    "[parameters('virtualMachineName')]"
+                    "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]"
                 ],
                 "properties": {
                     "publisher": "Microsoft.Powershell",
@@ -622,7 +621,6 @@
 			  "location": "[parameters('location')]",
 			  "dependsOn": [
 				"[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]",
-				"[parameters('virtualMachineName')]",
                 "machine-setup"
 			  ],
 			  "tags": {
@@ -655,9 +653,13 @@
             "type": "string",
             "value": "[parameters('adminUsername')]"
         },
-        "App Link": {
+        "SQL Database": {
             "type": "string",
-            "value": "[concat('https://', parameters('publicIpDns'),'.',parameters('location'),'.cloudapp.azure.com:8787/orion')]"
+            "value": "[variables('sqlDatabaseName')]"
+        },
+        "SQL User": {
+            "type": "string",
+            "value": "[variables('sqlDatabaseUserName')]"
         },
         "App default User": {
             "type": "string",
