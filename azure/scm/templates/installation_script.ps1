@@ -1,13 +1,13 @@
 param
 (
-    [string]$silentConfigUri,
-    [string]$installerUri,
-    [string]$dbServerName, 
-    [string]$databaseName, 
-    [string]$dbUserName, 
-    [string]$dbPassword,
-    [string]$appUserPassword,
-    [string]$vmName
+	[string]$silentConfigUri,
+	[string]$installerUri,
+	[string]$dbServerName, 
+	[string]$databaseName, 
+	[string]$dbUserName, 
+	[string]$dbPassword,
+	[string]$appUserPassword,
+	[string]$vmName
 )
 
 Start-Transcript -Path C:\postinstall.Log
@@ -15,33 +15,45 @@ Start-Transcript -Path C:\postinstall.Log
 #download the silent installer config file from Artifacts
 write-host "downloading silent installer config file from $silentConfigUri"; [datetime]::Now
 $configfilePath = "C:\Windows\Temp\silentconfig.xml"
-Invoke-WebRequest $silentConfigUri -OutFile $configfilePath
-write-host "download completed: $configfilePath"; [datetime]::Now
+try { 
+	(Invoke-WebRequest $silentConfigUri -OutFile $configfilePath -ErrorAction Stop).BaseResponse
+} catch [System.Net.WebException] { 
+    write-host "An exception was caught: $($_.Exception.Message)"
+    $_.Exception.Response 
+} 
+write-host "download Silent installer config file Completed"; [datetime]::Now
 
 #download the installer from Artifacts
 write-host "downloading installer from $installerUri"; [datetime]::Now
-$installer_name = "Solarwinds-Orion-SCM.exe"
-Invoke-WebRequest $installerUri -OutFile "C:\Windows\Temp\$installer_name"
-write-host "download completed: $installerfilePath"; [datetime]::Now
+$installer_name  = "Solarwinds-Orion-SCM.exe"
+try {
+	(Invoke-WebRequest $installerUri -OutFile "C:\Windows\Temp\$installer_name" -ErrorAction Stop).BaseResponse
+} catch [System.Net.WebException] { 
+    write-host "An exception was caught: $($_.Exception.Message)"
+    $_.Exception.Response 
+}
+write-host "download installer Comppleted"; [datetime]::Now
 
 #update DB details
-$xml = New-Object XML
+$xml=New-Object XML
 $xml.Load($configfilePath)
 
-$node = $xml.SilentConfig.InstallerConfiguration
-$node.WebConsolePassword = $appUserPassword
+$node=$xml.SilentConfig.InstallerConfiguration
+$node.WebConsolePassword=$appUserPassword
 
-if ($xml.SilentConfig.Host.Info.Database) {
-    $dbnode = $xml.SilentConfig.Host.Info.Database	
-    $dbnode.ServerName = $dbServerName
-    $dbnode.DatabaseName = $databaseName
-    $dbnode.User = $dbUserName    
-    $dbnode.UserPassword = $dbPassword
-    $dbnode.AccountPassword = $dbPassword
+if($xml.SilentConfig.Host.Info.Database)
+{
+	$dbnode=$xml.SilentConfig.Host.Info.Database	
+	$dbnode.ServerName=$dbServerName
+	$dbnode.DatabaseName=$databaseName
+	$dbnode.User=$dbUserName    
+	$dbnode.UserPassword=$dbPassword
+	$dbnode.AccountPassword=$dbPassword
 }
-if ($xml.SilentConfig.Host.Info.Website) {
-    $nodeWebsite = $xml.SilentConfig.Host.Info.Website
-    $nodeWebsite.CertificateResolvableCN = $vmName
+if($xml.SilentConfig.Host.Info.Website)
+{
+	$nodeWebsite = $xml.SilentConfig.Host.Info.Website
+	$nodeWebsite.CertificateResolvableCN = $vmName
 }
 
 $xml.Save($configfilePath)
@@ -57,28 +69,30 @@ Set-Location "C:\Windows\Temp"
 write-host ' installation started solarwindinstaller....'; [datetime]::Now
 
 #check for if installation status
-$process_name = $installer_name.Substring(0, $installer_name.LastIndexOf('.'))
-while (1) {
-    $Solarwinds = Get-Process $process_name -ErrorAction SilentlyContinue
-    if ($Solarwinds) {
-        Start-Sleep 5
-        Remove-Variable Solarwinds
-        continue;
-    }
-    else {
-        write-host "process completed"; [datetime]::Now
-        Remove-Variable Solarwinds
-        break;
-    }
+$process_name = $installer_name.Substring(0,$installer_name.LastIndexOf('.'))
+while(1)
+{
+	$Solarwinds = Get-Process $process_name -ErrorAction SilentlyContinue
+	if ($Solarwinds) {
+		Start-Sleep 5
+		Remove-Variable Solarwinds
+		continue;
+	}
+	else {
+		write-host "process completed"; [datetime]::Now
+		Remove-Variable Solarwinds
+		break;
+	}
 }
 
 #delete files created in installation process
 write-host ' Deleting the files created in installation process'; [datetime]::Now
 
 $installer_file = "C:\Windows\Temp\installer.ps1"
-if (Test-Path $installer_file) {
-    Remove-Item $installer_file
-    write-host 'silent installer file deleted'; [datetime]::Now
+if (Test-Path $installer_file) 
+{
+	Remove-Item $installer_file
+	write-host 'silent installer file deleted'; [datetime]::Now
 }
 
 write-host 'Files deleted which has been created in installation process'; [datetime]::Now 
