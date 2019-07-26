@@ -93,7 +93,7 @@
                 "description": "The name of the Virtual Machine."
             }
         },
-        "virtualMachineRG": {
+        "virtualNetworkRG": {
             "type": "string",
             "metadata": {
                 "description": "Resource Group of the Virtual Machine."
@@ -155,7 +155,7 @@
         },
         "dbUserName": {
             "type": "string",
-            "defaultValue": "[parameters('adminUsername')]",
+            "defaultValue": "oriondbadmin",
             "metadata": {
                 "description": "Provide user name for the azure sql"
             }
@@ -167,7 +167,7 @@
                 "description": "Provide password for the azure sql"
             }
         },
-        "isStandard": {
+        "provisionSqlServer": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
@@ -212,9 +212,8 @@
         },
         "networkInterfaceName": "[concat(parameters('virtualMachineName'),'-nic')]",
         "networkSecurityGroupName": "[concat(parameters('virtualMachineName'),'-nsg')]",
-        "nsgId": "[resourceId(parameters('virtualMachineRG'), 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
-        "subnetRef": "[resourceId(parameters('virtualMachineRG'),'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
-        "sqlDatabasePassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbPassword'), parameters('adminPassword'))]",
+        "nsgId": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
+        "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
         "dotnetInstallerUri": "[uri(parameters('_artifactsLocation'), 'installer/ndp48-web.exe')]",
         "machineSetupScriptUri": "[uri(parameters('_artifactsLocation'), concat('config/OrionAzureSetup.zip', parameters('_artifactsLocationSasToken')))]",
         "basicSecurityRules": [
@@ -428,7 +427,7 @@
             }
         },
         {
-            "condition": "[equals(parameters('isStandard'), bool('false'))]",
+            "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
             "name": "[parameters('dbServerName')]",
             "type": "Microsoft.Sql/servers",
             "apiVersion": "2017-10-01-preview",
@@ -438,7 +437,7 @@
             },
             "properties": {
                 "administratorLogin": "[parameters('dbUserName')]",
-                "administratorLoginPassword": "[variables('sqlDatabasePassword')]",
+                "administratorLoginPassword": "[parameters('dbPassword')]",
                 "version": "12.0"
             },
             "resources": [
@@ -577,7 +576,7 @@
                             ]
                         },
                         "protectedSettings": {
-                            "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri \"', variables('silentConfigUri'),'\" -installerUri \"', variables('installerUri'),'\" -dbServerName ', if(equals(parameters('isStandard'), bool('true')), parameters('dbServerName'), reference(resourceId(parameters('virtualMachineRG'), 'Microsoft.SQL/servers', parameters('dbServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',variables('sqlDatabasePassword'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName')) ]"
+                            "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri \"', variables('silentConfigUri'),'\" -installerUri \"', variables('installerUri'),'\" -dbServerName ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('dbServerName'), reference(resourceId(parameters('virtualNetworkRG'), 'Microsoft.SQL/servers', parameters('dbServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName')) ]"
                         }
                     }
                 }
@@ -600,6 +599,10 @@
         "SQL User": {
             "type": "string",
             "value": "[parameters('dbUserName')]"
+        },
+        "App URL Link": {
+            "type": "string",
+            "value": "[concat('https://', reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName'))).dnsSettings.fqdn, ':8787/orion')]"
         },
         "App default User": {
             "type": "string",

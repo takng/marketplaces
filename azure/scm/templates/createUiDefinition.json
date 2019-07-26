@@ -458,7 +458,7 @@
 			"publicIpDns": "[steps('NetworkSettings').publicIpAddress.domainNameLabel]",
 			"publicIpResourceGroupName": "[steps('NetworkSettings').publicIpAddress.resourceGroup]",
 			"publicIpAddressType": "[steps('NetworkSettings').publicIpAddress.publicIPAllocationMethod]",
-			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",	
+			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",
 			
 			"ScalabilityEngine": "[steps('OrionInstallationType').ScalabilityEngine]",
 			"provisionSqlServer": "[steps('OrionInstallationType').installationtype]",
