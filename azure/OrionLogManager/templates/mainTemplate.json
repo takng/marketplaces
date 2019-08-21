@@ -53,7 +53,7 @@
         },
         "publicIpAddressName": {
             "type": "string",
-            "defaultValue": "orionlogmanagerserver-ip",
+            "defaultValue": "olmserver-ip",
             "metadata": {
                 "description": "Public IP Address Name for the VM"
             }
@@ -93,10 +93,10 @@
                 "description": "The name of the Virtual Machine."
             }
         },
-        "virtualMachineRG": {
+        "virtualNetworkRG": {
             "type": "string",
             "metadata": {
-                "description": "Resource Group of the Virtual Machine."
+                "description": "Resource Group of the Virtual Network."
             }
         },
         "osDiskType": {
@@ -133,8 +133,8 @@
             }
         },
         "appUserPassword": {
-            "type": "string",
-            "defaultValue": "admin",
+            "type": "securestring",
+            "defaultValue": "",
             "metadata": {
                 "description": "Provide password for the application"
             }
@@ -155,7 +155,7 @@
         },
         "dbUserName": {
             "type": "string",
-            "defaultValue": "[parameters('adminUsername')]",
+            "defaultValue": "",
             "metadata": {
                 "description": "Provide user name for the azure sql"
             }
@@ -169,7 +169,7 @@
         },
         "olmServerName": {
             "type": "string",
-            "defaultValue": "[concat('olmserver', uniqueString(subscription().id, resourceGroup().id))]",
+            "defaultValue": "[concat('oriondbserver', uniqueString(subscription().id, resourceGroup().id))]",
             "metadata": {
                 "description": "Provide server name for the azure sql"
             }
@@ -183,7 +183,7 @@
         },
         "olmUserName": {
             "type": "string",
-            "defaultValue": "[parameters('adminUsername')]",
+            "defaultValue": "",
             "metadata": {
                 "description": "Provide user name for the azure sql"
             }
@@ -195,7 +195,7 @@
                 "description": "Provide password for the azure sql"
             }
         },
-        "isStandard": {
+        "provisionSqlServer": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
@@ -240,10 +240,8 @@
         },
         "networkInterfaceName": "[concat(parameters('virtualMachineName'),'-nic')]",
         "networkSecurityGroupName": "[concat(parameters('virtualMachineName'),'-nsg')]",
-        "nsgId": "[resourceId(parameters('virtualMachineRG'), 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
-        "subnetRef": "[resourceId(parameters('virtualMachineRG'),'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
-        "sqlDatabasePassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('dbPassword'), parameters('adminPassword'))]",
-        "olmDBPassword": "[if(equals(parameters('isStandard'), bool('true')), parameters('olmPassword'), parameters('adminPassword'))]",
+        "nsgId": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
+        "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
         "dotnetInstallerUri": "[uri(parameters('_artifactsLocation'), 'installer/ndp48-web.exe')]",
         "machineSetupScriptUri": "[uri(parameters('_artifactsLocation'), concat('config/OrionAzureSetup.zip', parameters('_artifactsLocationSasToken')))]",
         "basicSecurityRules": [
@@ -457,7 +455,7 @@
             }
         },
         {
-            "condition": "[equals(parameters('isStandard'), bool('false'))]",
+            "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
             "name": "[parameters('dbServerName')]",
             "type": "Microsoft.Sql/servers",
             "apiVersion": "2017-10-01-preview",
@@ -467,11 +465,12 @@
             },
             "properties": {
                 "administratorLogin": "[parameters('dbUserName')]",
-                "administratorLoginPassword": "[variables('sqlDatabasePassword')]",
+                "administratorLoginPassword": "[parameters('dbPassword')]",
                 "version": "12.0"
             },
             "resources": [
                 {
+                    "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
                     "name": "[parameters('databaseName')]",
                     "type": "databases",
                     "apiVersion": "2017-10-01-preview",
@@ -491,6 +490,7 @@
                     }
                 },
                 {
+                    "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
                     "name": "[parameters('olmDatabaseName')]",
                     "type": "databases",
                     "apiVersion": "2017-10-01-preview",
@@ -510,6 +510,7 @@
                     }
                 },
                 {
+                    "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
                     "name": "AllowAllMicrosoftAzureIps",
                     "type": "firewallRules",
                     "apiVersion": "2017-10-01-preview",
@@ -625,7 +626,7 @@
                             ]
                         },
                         "protectedSettings": {
-                            "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri \"', variables('silentConfigUri'),'\" -installerUri \"', variables('installerUri'),'\" -dbServerName ', if(equals(parameters('isStandard'), bool('true')), parameters('dbServerName'), reference(resourceId(parameters('virtualMachineRG'), 'Microsoft.SQL/servers', parameters('dbServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('databaseName'),' -dbPassword ',variables('sqlDatabasePassword'),' -olmDBServerName ', if(equals(parameters('isStandard'), bool('true')), parameters('olmServerName'), reference(resourceId(parameters('virtualMachineRG'), 'Microsoft.SQL/servers', parameters('olmServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -olmDBName ', parameters('olmDatabaseName'),' -olmDBUserName ', parameters('olmUserName'),' -olmDBPassword ', variables('olmDBPassword'),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName'))]"
+                            "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 ','-silentConfigUri \"', variables('silentConfigUri'),'\" -installerUri \"', variables('installerUri'),'\" -dbServerName ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('dbServerName'), reference(resourceId(parameters('virtualNetworkRG'), 'Microsoft.SQL/servers', parameters('dbServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -databaseName ',parameters('databaseName'),' -dbUserName ',parameters('dbUserName'),' -dbPassword ',parameters('dbPassword'),' -olmDBServerName ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('olmServerName'), reference(resourceId(parameters('virtualNetworkRG'), 'Microsoft.SQL/servers', parameters('dbServerName')), '2018-06-01-preview').fullyQualifiedDomainName),' -olmDBName ', parameters('olmDatabaseName'),' -olmDBUserName ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('olmUserName'), parameters('dbUserName')),' -olmDBPassword ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('olmPassword'), parameters('dbPassword')),' -appUserPassword ',parameters('appUserPassword'),' -vmName ',parameters('virtualMachineName'))]"
                         }
                     }
                 }
@@ -645,13 +646,21 @@
             "type": "string",
             "value": "[parameters('databaseName')]"
         },
-        "OLM Database": {
-            "type": "string",
-            "value": "[parameters('olmDatabaseName')]"
-        },        
         "SQL User": {
             "type": "string",
             "value": "[parameters('dbUserName')]"
+        },
+        "OLM Database": {
+            "type": "string",
+            "value": "[parameters('olmDatabaseName')]"
+        },
+        "OLM DB User": {
+            "type": "string",
+            "value": "[if(equals(parameters('provisionSqlServer'), bool('false')), parameters('olmUserName'), parameters('dbUserName'))]"
+        },
+        "App URL Link": {
+            "type": "string",
+            "value": "[concat('https://', reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName'))).dnsSettings.fqdn, ':8787/orion')]"
         },
         "App default User": {
             "type": "string",

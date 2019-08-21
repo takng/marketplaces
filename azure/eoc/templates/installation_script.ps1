@@ -15,14 +15,24 @@ Start-Transcript -Path C:\postinstall.Log
 #download the silent installer config file from Artifacts
 write-host "downloading silent installer config file from $silentConfigUri"; [datetime]::Now
 $configfilePath = "C:\Windows\Temp\silentconfig.xml"
-Invoke-WebRequest $silentConfigUri -OutFile $configfilePath
-write-host "download completed: $configfilePath"; [datetime]::Now
+try { 
+	(Invoke-WebRequest $silentConfigUri -OutFile $configfilePath -ErrorAction Stop).BaseResponse
+} catch [System.Net.WebException] { 
+    write-host "An exception was caught: $($_.Exception.Message)"
+    $_.Exception.Response 
+} 
+write-host "download Silent installer config file Completed"; [datetime]::Now
 
 #download the installer from Artifacts
 write-host "downloading installer from $installerUri"; [datetime]::Now
 $installer_name = "Solarwinds-Orion-EOC.exe"
-Invoke-WebRequest $installerUri -OutFile "C:\Windows\Temp\$installer_name"
-write-host "download completed: $installerfilePath"; [datetime]::Now
+try {
+	(Invoke-WebRequest $installerUri -OutFile "C:\Windows\Temp\$installer_name" -ErrorAction Stop).BaseResponse
+} catch [System.Net.WebException] { 
+    write-host "An exception was caught: $($_.Exception.Message)"
+    $_.Exception.Response 
+}
+write-host "download installer Completed"; [datetime]::Now
 
 #update DB details
 $xml = New-Object XML

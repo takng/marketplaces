@@ -6,10 +6,10 @@ param
     [string]$databaseName, 
     [string]$dbUserName, 
     [string]$dbPassword,
-    [string]$olmDBServerName,
-    [string]$olmDBName,
-    [string]$olmDBUserName,
-    [string]$olmDBPassword,
+    [string]$ntaDBServerName,
+    [string]$ntaDBName,
+    [string]$ntaDBUserName,
+    [string]$ntaDBPassword,
     [string]$appUserPassword,
     [string]$vmName
 )
@@ -29,7 +29,7 @@ write-host "download Silent installer config file Completed"; [datetime]::Now
 
 #download the installer from Artifacts
 write-host "downloading installer from $installerUri"; [datetime]::Now
-$installer_name  = "Solarwinds-Orion-OrionLogManager.exe"
+$installer_name  = "Solarwinds-Orion-NTA.exe"
 try {
 	(Invoke-WebRequest $installerUri -OutFile "C:\Windows\Temp\$installer_name" -ErrorAction Stop).BaseResponse
 } catch [System.Net.WebException] { 
@@ -55,13 +55,13 @@ if ($xml.SilentConfig.Host.Info.Database)
     $dbnode.AccountPassword = $dbPassword
 }
 
-if ($xml.SilentConfig.Host.Info.OrionLogConfiguration.StorageConfig) {
-    $nodeStorageConfig = $xml.SilentConfig.Host.Info.OrionLogConfiguration.StorageConfig
-    $nodeStorageConfig.ServerName = $olmDBServerName
-    $nodeStorageConfig.DatabaseName = $olmDBName
-    $nodeStorageConfig.User = $olmDBUserName
-    $nodeStorageConfig.UserPassword = $olmDBPassword
-    $nodeStorageConfig.AccountPassword = $olmDBPassword
+if ($xml.SilentConfig.Host.Info.NetFlowConfiguration.FlowStorageConfig) {
+    $nodeStorageConfig = $xml.SilentConfig.Host.Info.NetFlowConfiguration.FlowStorageConfig
+    $nodeStorageConfig.ServerName = $ntaDBServerName
+    $nodeStorageConfig.DatabaseName = $ntaDBName
+    $nodeStorageConfig.User = $ntaDBUserName
+    $nodeStorageConfig.UserPassword = $ntaDBPassword
+    $nodeStorageConfig.AccountPassword = $ntaDBPassword
 }
 
 if ($xml.SilentConfig.Host.Info.Website) 
