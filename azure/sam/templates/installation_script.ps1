@@ -32,7 +32,7 @@ try {
     write-host "An exception was caught: $($_.Exception.Message)"
     $_.Exception.Response 
 }
-write-host "download installer Comppleted"; [datetime]::Now
+write-host "download installer Completed"; [datetime]::Now
 
 #update DB details
 $xml = New-Object XML

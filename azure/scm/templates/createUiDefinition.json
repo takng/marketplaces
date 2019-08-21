@@ -133,7 +133,7 @@
 						"type": "Microsoft.Common.DropDown",
 						"label": "Image",
 						"toolTip": "The OS version of virtual machine to provision for the VM.",
-						"defaultValue": "Windows Server 2016 Datacenter",
+						"defaultValue": "Windows Server 2019 Datacenter",
 						"constraints": {
 							"allowedValues": [
 								{

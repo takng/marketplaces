@@ -155,7 +155,7 @@
         },
         "dbUserName": {
             "type": "string",
-            "defaultValue": "oriondbadmin",
+            "defaultValue": "",
             "metadata": {
                 "description": "Provide user name for the azure sql"
             }
