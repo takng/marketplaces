@@ -211,16 +211,16 @@
 
   "Mappings": {
     "AWSRegionToAMIMap": {
-      "us-east-1": { "AMI": "ami-086de89eaeb9a65d1" },
-      "us-east-2": { "AMI": "ami-086de89eaeb9a65d1" },
-      "us-west-1": { "AMI": "ami-086de89eaeb9a65d1" },
-      "eu-central-1": { "AMI": "ami-086de89eaeb9a65d1" },
-      "eu-west-1": { "AMI": "ami-086de89eaeb9a65d1" },
-      "ap-southeast-1": { "AMI": "ami-086de89eaeb9a65d1" },
-      "ap-southeast-2": { "AMI": "ami-086de89eaeb9a65d1" },
-      "ap-northeast-1": { "AMI": "ami-086de89eaeb9a65d1" },
-      "ap-south-1": { "AMI": "ami-086de89eaeb9a65d1" },
-      "sa-east-1": { "AMI": "ami-086de89eaeb9a65d1" }
+      "us-east-1": { "AMI": "ami-0e7557462d324f364" },
+      "us-east-2": { "AMI": "ami-0e7557462d324f364" },
+      "us-west-1": { "AMI": "ami-0e7557462d324f364" },
+      "eu-central-1": { "AMI": "ami-0e7557462d324f364" },
+      "eu-west-1": { "AMI": "ami-0e7557462d324f364" },
+      "ap-southeast-1": { "AMI": "ami-0e7557462d324f364" },
+      "ap-southeast-2": { "AMI": "ami-0e7557462d324f364" },
+      "ap-northeast-1": { "AMI": "ami-0e7557462d324f364" },
+      "ap-south-1": { "AMI": "ami-0e7557462d324f364" },
+      "sa-east-1": { "AMI": "ami-0e7557462d324f364" }
     },
     "DatabaseEmbeddedToDBEngine": {
       "DatabaseEmbedded": {
