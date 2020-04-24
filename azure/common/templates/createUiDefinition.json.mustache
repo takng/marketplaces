@@ -16,8 +16,8 @@
 						"name": "appName",
 						"type": "Microsoft.Common.TextBox",
 						"label": "Virtual Machine name",
-						"toolTip": "Choose a name for virtual machine where Engineers Toolset (ETS) will be deployed.",
-						"defaultValue": "vmorionets",
+						"toolTip": "Choose a name for virtual machine where {{productFull}} ({{productUpper}}) will be deployed.",
+						"defaultValue": "vmorion{{product}}",
 						"constraints": {
 							"required": true,
 							"regex": "^[a-z0-9A-Z-]{3,79}$",
@@ -343,6 +343,102 @@
 					}
 				]
 			},
+			{{#additionalDatabase}}
+			{
+				"name": "{{productUpper}}DatabaseSettings",
+				"label": "{{productUpper}} Database Settings",
+				"subLabel": {
+					"preValidation": "{{productUpper}} Database settings",
+					"postValidation": "Done!"
+				},
+				"bladeTitle": "{{productUpper}} Database Settings",
+				"elements": [
+					{
+						"name": "{{productUpper}}AzureSqlDbDetails",
+						"type": "Microsoft.Common.Section",
+						"elements": [
+							{
+								"name": "Show{{productUpper}}DatabaseInformation",
+								"type": "Microsoft.Common.TextBlock",
+								"options": {
+									"text": "A 'Standard S3' Azure SQL database will be created for {{productFull}} ({{productUpper}}) under the same SQL Server as Orion Database and might be accessed using the same username and password."
+								}
+							},
+							{
+								"name": "ShowExpressTextSecond",
+								"type": "Microsoft.Common.TextBlock",
+								"options": {
+									"text": "Upgrading the Azure SQL database tier may be done at any time through the Microsoft Azure Portal and does not require any changes to Network Traffic Analyzer."
+								}
+							}
+						],
+						"visible": "[steps('DatabaseSettings').installationtype]"
+					},
+					{
+						"name": "{{productUpper}}DbDetails",
+						"type": "Microsoft.Common.Section",
+						"label": "Enter {{productUpper}} Database details",
+						"elements": [
+							{
+								"name": "ShowDBConnectionTest",
+								"type": "Microsoft.Common.TextBlock",
+								"options": {
+									"text": "Existing Azure SQL DB or SQL Server connection information:"
+								}
+							},
+							{
+								"name": "{{product}}ServerName",
+								"type": "Microsoft.Common.TextBox",
+								"label": "{{productUpper}} DB Server Name (FQDN)",
+								"toolTip": "Provide a Fully Qualified SQL server name. This must be an existing SQL server.",
+								"constraints": {
+									"regex": "([^.]*\\.){3}",
+									"required": true,
+									"validationMessage": "The SQL Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only alongwith FQDN (e.g database.windows.net). The SQL server should be an existing server."
+								}
+							},
+							{
+								"name": "{{product}}DatabaseName",
+								"type": "Microsoft.Common.TextBox",
+								"label": "{{productUpper}} Database Name",
+								"toolTip": "Provide {{productFull}} ({{productUpper}}) database name.",
+								"constraints": {
+									"regex": "^(?!master$|model$|msdb$|tempdb$|pdwtempdb$|pdwtempdb1$|pdwtempdb2$|DWConfiguration$|DWDiagnostics$|DWQueue$)[^.]{1,128}$",
+									"required": true,
+									"validationMessage": "The Database Name should be maximum 128 characters long and should not contain reserved words (like master, model, tempdb, etc.)"
+								}
+							},
+							{
+								"name": "{{product}}UserName",
+								"type": "Microsoft.Common.TextBox",
+								"label": "{{productUpper}} DB Server Admin username",
+								"toolTip": "Provide {{productFull}} ({{productUpper}}) server admin user name.",
+								"constraints": {
+									"regex": "^(?!admin$|administrator$|sa$|root$|dbmanager$|loginmanager$|dbo$|guest$|information_schema$|sys$|db_accessadmin$|db_backupoperator$|db_datareader$|db_datawriter$|db_ddladmin$|db_denydatareader$|db_denydatawriter$|db_owner$|db_securityadmin$|public$|@|\\$|[0-9])[a-z0-9A-Z-_!@$^]{3,79}$",
+									"required": true,
+									"validationMessage": "Make sure your login name meets the following requirements - It's a SQL Identifier, and not a typical system name (like admin, administrator, sa, root, dbmanager, loginmanager, etc.), or a built-in database user or role (like dbo, guest, public, etc.). Make sure your name doesn't contain whitespaces, unicode characters, or nonalphabetic characters, and that it doesn't begin with numbers or symbols."
+								}
+							},
+							{
+								"name": "{{product}}Password",
+								"type": "Microsoft.Common.PasswordBox",
+								"toolTip": "Provide {{productFull}} ({{productUpper}}) server admin password.",
+								"label": {
+									"password": "Password",
+									"confirmPassword": "Confirm password"
+								},
+								"constraints": {
+									"required": true,
+									"regex": "^(((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))|((?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]))|((?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*]))|((?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])))(?=.{12,128})",
+									"validationMessage": "Your password must be at least 12 characters in length. Your password must contain characters from three of the following categories: English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)"
+								}
+							}
+						],
+						"visible": "[not(steps('DatabaseSettings').installationtype)]"
+					}
+				]
+			},
+			{{/additionalDatabase}}
 			{
 				"name": "OrionInstallation",
 				"label": "Orion Installation",
@@ -358,7 +454,7 @@
 							"password": "Orion Web Console \"Admin\" Password",
 							"confirmPassword": "Confirm \"Admin\" password"
 						},
-						"toolTip": "Create ETS application password to access Orion Web Console for \"Admin\" user",
+						"toolTip": "Create {{productUpper}} application password to access Orion Web Console for \"Admin\" user",
 						"constraints": {
 							"required": true
 						}
@@ -422,6 +518,12 @@
 			"databaseName": "[steps('DatabaseSettings').AzureDbDetails.databaseName]",
 			"dbUserName": "[steps('DatabaseSettings').dbUserName]",
 			"dbPassword": "[steps('DatabaseSettings').dbPassword]",
+			{{#additionalDatabase}}
+			"{{product}}ServerName": "[steps('{{productUpper}}DatabaseSettings').{{productUpper}}DbDetails.{{product}}ServerName]",
+			"{{product}}DatabaseName": "[steps('{{productUpper}}DatabaseSettings').{{productUpper}}DbDetails.{{product}}DatabaseName]",
+			"{{product}}UserName": "[steps('{{productUpper}}DatabaseSettings').{{productUpper}}DbDetails.{{product}}UserName]",
+			"{{product}}Password": "[steps('{{productUpper}}DatabaseSettings').{{productUpper}}DbDetails.{{product}}Password]",
+			{{/additionalDatabase}}
 			"windowsLicenseType": "[steps('OSDetails').saveMoney.windowsLicenseType]"
 		}
 	}

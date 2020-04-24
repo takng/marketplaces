@@ -171,6 +171,34 @@
                 "description": "Provide password for the azure sql"
             }
         },
+        "laServerName": {
+            "type": "string",
+            "defaultValue": "[parameters('dbServerName')]",
+            "metadata": {
+                "description": "Provide server name for the azure sql"
+            }
+        },
+        "laDatabaseName": {
+            "type": "string",
+            "defaultValue": "[concat('sqldb-la-', uniqueString(parameters('guidValue')))]",
+            "metadata": {
+                "description": "Provide database name for the azure sql"
+            }
+        },
+        "laUserName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Provide user name for the azure sql"
+            }
+        },
+        "laPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Provide password for the azure sql"
+            }
+        },
         "provisionSqlServer": {
             "type": "bool",
             "defaultValue": true,
@@ -293,7 +321,7 @@
     "resources": [
         {
             "apiVersion": "2019-09-01",
-            "name": "pid-0414b32b-e704-53e7-9c5c-b229f2466c39",
+            "name": "pid-c4e6c6de-2caf-5d0e-b7a2-b8a922c82980",
             "type": "Microsoft.Resources/deployments",
             "properties": {
                 "mode": "Incremental",
@@ -414,6 +442,26 @@
                 },
                 {
                     "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
+                    "name": "[parameters('laDatabaseName')]",
+                    "type": "databases",
+                    "apiVersion": "2019-06-01-preview",
+                    "location": "[parameters('location')]",
+                    "tags": {
+                        "displayName": "Database"
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers/', parameters('dbServerName'))]"
+                    ],
+                    "properties": {
+                        "collation": "SQL_Latin1_General_CP1_CI_AS"
+                    },
+                    "sku": {
+                        "name": "S3",
+                        "tier": "Standard"
+                    }
+                },
+                {
+                    "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
                     "name": "AllowAllMicrosoftAzureIps",
                     "type": "firewallRules",
                     "apiVersion": "2019-06-01-preview",
@@ -436,6 +484,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]",
                 "[resourceId('Microsoft.Sql/servers/', parameters('dbServerName'))]",
+                "[parameters('laDatabaseName')]",
                 "[parameters('databaseName')]"
             ],
             "properties": {
@@ -538,6 +587,13 @@
                                 ,' -dbPassword ',parameters('dbPassword')
                                 ,' -appUserPassword ',parameters('appUserPassword')
                                 ,' -vmName ',parameters('virtualMachineName')
+                                ,' -laDBServerName '
+                                    , if(equals(parameters('provisionSqlServer'), bool('false'))
+                                        , parameters('laServerName')
+                                        , reference(resourceId('Microsoft.SQL/servers', parameters('dbServerName')), '2019-06-01-preview').fullyQualifiedDomainName)
+                                ,' -laDBName ', parameters('laDatabaseName')
+                                ,' -laDBUserName ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('laUserName'), parameters('dbUserName'))
+                                ,' -laDBPassword ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('laPassword'), parameters('dbPassword'))
                                 )]"
                         }
                     }
@@ -565,6 +621,14 @@
         "SQL User": {
             "type": "string",
             "value": "[parameters('dbUserName')]"
+        },
+        "LA Database": {
+            "type": "string",
+            "value": "[parameters('laDatabaseName')]"
+        },
+        "LA DB User": {
+            "type": "string",
+            "value": "[if(equals(parameters('provisionSqlServer'), bool('false')), parameters('laUserName'), parameters('dbUserName'))]"
         },
         "App URL Link": {
             "type": "string",

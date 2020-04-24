@@ -171,6 +171,36 @@
                 "description": "Provide password for the azure sql"
             }
         },
+        {{#additionalDatabase}}
+        "{{product}}ServerName": {
+            "type": "string",
+            "defaultValue": "[parameters('dbServerName')]",
+            "metadata": {
+                "description": "Provide server name for the azure sql"
+            }
+        },
+        "{{product}}DatabaseName": {
+            "type": "string",
+            "defaultValue": "[concat('sqldb-{{product}}-', uniqueString(parameters('guidValue')))]",
+            "metadata": {
+                "description": "Provide database name for the azure sql"
+            }
+        },
+        "{{product}}UserName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Provide user name for the azure sql"
+            }
+        },
+        "{{product}}Password": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Provide password for the azure sql"
+            }
+        },
+        {{/additionalDatabase}}
         "provisionSqlServer": {
             "type": "bool",
             "defaultValue": true,
@@ -293,7 +323,7 @@
     "resources": [
         {
             "apiVersion": "2019-09-01",
-            "name": "pid-0414b32b-e704-53e7-9c5c-b229f2466c39",
+            "name": "pid-{{pid}}",
             "type": "Microsoft.Resources/deployments",
             "properties": {
                 "mode": "Incremental",
@@ -412,6 +442,28 @@
                         "tier": "Standard"
                     }
                 },
+                {{#additionalDatabase}}
+                {
+                    "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
+                    "name": "[parameters('{{product}}DatabaseName')]",
+                    "type": "databases",
+                    "apiVersion": "2019-06-01-preview",
+                    "location": "[parameters('location')]",
+                    "tags": {
+                        "displayName": "Database"
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers/', parameters('dbServerName'))]"
+                    ],
+                    "properties": {
+                        "collation": "SQL_Latin1_General_CP1_CI_AS"
+                    },
+                    "sku": {
+                        "name": "S3",
+                        "tier": "Standard"
+                    }
+                },
+                {{/additionalDatabase}}
                 {
                     "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
                     "name": "AllowAllMicrosoftAzureIps",
@@ -436,6 +488,9 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]",
                 "[resourceId('Microsoft.Sql/servers/', parameters('dbServerName'))]",
+                {{#additionalDatabase}}
+                "[parameters('{{product}}DatabaseName')]",
+                {{/additionalDatabase}}
                 "[parameters('databaseName')]"
             ],
             "properties": {
@@ -538,6 +593,15 @@
                                 ,' -dbPassword ',parameters('dbPassword')
                                 ,' -appUserPassword ',parameters('appUserPassword')
                                 ,' -vmName ',parameters('virtualMachineName')
+                                {{#additionalDatabase}}
+                                ,' -{{product}}DBServerName '
+                                    , if(equals(parameters('provisionSqlServer'), bool('false'))
+                                        , parameters('{{product}}ServerName')
+                                        , reference(resourceId('Microsoft.SQL/servers', parameters('dbServerName')), '2019-06-01-preview').fullyQualifiedDomainName)
+                                ,' -{{product}}DBName ', parameters('{{product}}DatabaseName')
+                                ,' -{{product}}DBUserName ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('{{product}}UserName'), parameters('dbUserName'))
+                                ,' -{{product}}DBPassword ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('{{product}}Password'), parameters('dbPassword'))
+                                {{/additionalDatabase}}
                                 )]"
                         }
                     }
@@ -566,6 +630,16 @@
             "type": "string",
             "value": "[parameters('dbUserName')]"
         },
+        {{#additionalDatabase}}
+        "{{productUpper}} Database": {
+            "type": "string",
+            "value": "[parameters('{{product}}DatabaseName')]"
+        },
+        "{{productUpper}} DB User": {
+            "type": "string",
+            "value": "[if(equals(parameters('provisionSqlServer'), bool('false')), parameters('{{product}}UserName'), parameters('dbUserName'))]"
+        },
+        {{/additionalDatabase}}
         "App URL Link": {
             "type": "string",
             "value": "[concat('https://', reference(resourceId(parameters('publicIpResourceGroupName'), 'Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName')), '2019-11-01').dnsSettings.fqdn, ':8787/orion')]"

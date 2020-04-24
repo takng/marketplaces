@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <SilentConfig>
   <InstallerConfiguration>
-    <ProductsToInstall>NPM</ProductsToInstall>
+    <ProductsToInstall>{{productToInstall}}</ProductsToInstall>
     <AdvancedInstallMode>True</AdvancedInstallMode>
     <SkipConfigurationWizardRun>False</SkipConfigurationWizardRun>
   </InstallerConfiguration>
@@ -37,8 +37,44 @@
         <SkipHTTPBinding>false</SkipHTTPBinding>
         <DefaultAdminPassword></DefaultAdminPassword>
       </Website>
+      {{#nta}}
+      <NetFlowConfiguration>
+        <FlowStorageConfig>
+          <CreateNewDatabase>false</CreateNewDatabase>
+          <DatabaseName>SolarWindsNtaDatabase</DatabaseName>
+          <ServerName></ServerName>
+          <UseSQLSecurity>true</UseSQLSecurity>
+          <User>orionadmin</User>
+          <UserPassword></UserPassword>
+          <AccountType>NewSql</AccountType>
+          <Account>SolarWindsNtaDatabaseUser</Account>
+          <AccountPassword></AccountPassword>
+        </FlowStorageConfig>
+      </NetFlowConfiguration>
+      {{/nta}}
+      {{#la}}
+      <OrionLogConfiguration>
+        <StorageConfig>
+          <CreateNewDatabase>false</CreateNewDatabase>
+          <DatabaseName>SolarWindsLaDatabase</DatabaseName>
+          <ServerName></ServerName>
+          <UseSQLSecurity>true</UseSQLSecurity>
+          <User>orionadmin</User>
+          <UserPassword></UserPassword>
+          <AccountType>NewSql</AccountType>
+          <Account>SolarWindsLaDatabaseUser</Account>
+          <AccountPassword></AccountPassword>
+        </StorageConfig>
+      </OrionLogConfiguration>
+      {{/la}}
     </Info>
   </Host>
   <Plugins>
+    {{#nta}}
+    <Plugin Assembly="SolarWinds.ConfigurationWizard.Plugin.NetFlow" FactoryType="SolarWinds.ConfigurationWizard.Plugin.NetFlow.SilentMode.NetFlowSilentConfigureFactory" />
+    {{/nta}}
+    {{#la}}
+    <Plugin FactoryType="SolarWinds.ConfigurationWizard.Plugin.LogMgmt.SilentConfigureFactory" Assembly="SolarWinds.ConfigurationWizard.Plugin.LogMgmt"/>
+    {{/la}}
   </Plugins>
 </SilentConfig>

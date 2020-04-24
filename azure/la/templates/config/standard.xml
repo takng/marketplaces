@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <SilentConfig>
   <InstallerConfiguration>
-    <ProductsToInstall>NPM</ProductsToInstall>
+    <ProductsToInstall>OrionLogManager</ProductsToInstall>
     <AdvancedInstallMode>True</AdvancedInstallMode>
     <SkipConfigurationWizardRun>False</SkipConfigurationWizardRun>
   </InstallerConfiguration>
@@ -37,8 +37,22 @@
         <SkipHTTPBinding>false</SkipHTTPBinding>
         <DefaultAdminPassword></DefaultAdminPassword>
       </Website>
+      <OrionLogConfiguration>
+        <StorageConfig>
+          <CreateNewDatabase>false</CreateNewDatabase>
+          <DatabaseName>SolarWindsLaDatabase</DatabaseName>
+          <ServerName></ServerName>
+          <UseSQLSecurity>true</UseSQLSecurity>
+          <User>orionadmin</User>
+          <UserPassword></UserPassword>
+          <AccountType>NewSql</AccountType>
+          <Account>SolarWindsLaDatabaseUser</Account>
+          <AccountPassword></AccountPassword>
+        </StorageConfig>
+      </OrionLogConfiguration>
     </Info>
   </Host>
   <Plugins>
+    <Plugin FactoryType="SolarWinds.ConfigurationWizard.Plugin.LogMgmt.SilentConfigureFactory" Assembly="SolarWinds.ConfigurationWizard.Plugin.LogMgmt"/>
   </Plugins>
 </SilentConfig>
