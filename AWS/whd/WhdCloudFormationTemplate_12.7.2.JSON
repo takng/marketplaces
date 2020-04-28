@@ -1,6 +1,6 @@
 {
-  "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "WHD CF Template",
+  "AWSTemplateFormatVersion": "2020-04-04",
+  "Description": "WHD CF Template 12.7.2",
   "Metadata": {
     "AWS::CloudFormation::Interface": {
       "ParameterGroups": [
