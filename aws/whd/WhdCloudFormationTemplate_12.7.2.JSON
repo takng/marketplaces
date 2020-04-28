@@ -1,5 +1,5 @@
 {
-  "AWSTemplateFormatVersion": "2020-04-04",
+  "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "WHD CF Template 12.7.2",
   "Metadata": {
     "AWS::CloudFormation::Interface": {
@@ -249,7 +249,7 @@
           }
         ],
         "Description": "CloudFormation Custom Parameter Group for Version update",
-        "Family": "mysql5.6",
+        "Family": "mysql5.7",
         "Parameters": {
           "log_bin_trust_function_creators": "1"
         }
