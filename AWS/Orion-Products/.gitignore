@@ -1,0 +1,12 @@
+**/*.test.cfn.json
+**/~*.xlsx
+
+*.txt
+*.log
+
+# secrets
+**/*.pfx
+**/*.cer
+
+.vscode
+.build

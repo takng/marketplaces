@@ -4,7 +4,7 @@
     <ProductsToInstall></ProductsToInstall>
     <AdvancedInstallMode>True</AdvancedInstallMode>
     <SkipConfigurationWizardRun>False</SkipConfigurationWizardRun>
-	<RegForm>Amazon</RegForm>
+    <RegForm>Amazon</RegForm>
   </InstallerConfiguration>
   <Host>
     <Info>
@@ -28,12 +28,12 @@
         <Account>SolarWindsOrionDatabaseUser</Account>
         <AccountPassword></AccountPassword>
         <!--(Orion database account, e.g.: SolarwindsOrionDatabaseUser)-->
-        
+
       </Database>
       <Website>
         <Folder>C:\InetPub\SolarWinds</Folder>
         <Address>(All Unassigned)</Address>
-        <Port>8787</Port>
+        <Port>443</Port>
         <ApplicationName>SolarWinds NetPerfMon</ApplicationName>
         <LaunchWebConsole>false</LaunchWebConsole>
         <ConfigurationSkipped_IISNotInstalled>false</ConfigurationSkipped_IISNotInstalled>
@@ -43,7 +43,7 @@
         <CertificateName>Generate Self-Signed Certificate...</CertificateName>
         <EnableHTTPS>true</EnableHTTPS>
         <SkipHTTPBinding>false</SkipHTTPBinding>
-		<DefaultAdminPassword></DefaultAdminPassword>
+        <DefaultAdminPassword></DefaultAdminPassword>
       </Website>
     </Info>
   </Host>

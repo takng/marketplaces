@@ -1,6 +1,6 @@
 {
    "AWSTemplateFormatVersion":"2010-09-09",
-   "Description":"This template installs SolarWinds Enterprise Operations Console (EOC). **WARNING** This template creates Amazon EC2 Windows instance and related resources. You will be billed for the AWS resources used if you create a stack from this template.",
+   "Description":"This template installs SolarWinds Web Performance Monitor (WPM). **WARNING** This template creates Amazon EC2 Windows instance and related resources. You will be billed for the AWS resources used if you create a stack from this template.",
    "Parameters":{
       "Password":{
          "Type":"String",
@@ -10,21 +10,120 @@
          "AllowedPattern":"((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{12,20})",
          "ConstraintDescription":"Your password must be at least 12 characters in length. Your password must contain characters from three of the following categories ? English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)"
       },
-      "EOCProduct": {
-        "Type": "String",
-        "Default": "EOC",
-        "AllowedValues": [
-          "EOC"
-        ]
-      },
+      "SAMProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
+      "VMANProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
+      "SCMProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
+      "WPMProduct": {
+         "Type": "String",
+         "Default": "Yes",
+         "AllowedValues": [
+            "Yes"
+         ]
+       },
+      "NPMProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
+      "NTAProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
+      "NCMProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
+      "IPAMProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
+      "LAProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
+      "SRMProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
+      "UDTProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
+      "VNQMProduct": {
+         "Type": "String",
+         "Default": "Select an option...",
+         "AllowedValues": [
+           "Select an option...",
+           "Yes",
+           "No"
+         ]
+       },
       "KeyName":{
-         "Description":"The EC2 key pair is used to access EC2 instances. Please create a new key pair from AWS Console if no entry found in the drop down.",
+         "Description":"The EC2 Key Pair used to access EC2 instance. Please create a new Key Pair in the AWS Console if no entry is found in the dropdown.",
          "Type":"AWS::EC2::KeyPair::KeyName",
          "AllowedPattern":".+",
-         "ConstraintDescription":"Please select existing EC2 key pair from dropdown."
+         "ConstraintDescription":"Please select an existing EC2 Key Pair from the dropdown."
       },
       "EC2InstanceTypeParameter":{
-         "Description":"Recommended size: m4.2xlarge 8 vcpus, 32 GB memory",
+         "Description":"Recommended size: m4.2xlarge - 8 vCPUs, 32 GB Memory",
          "Type":"String",
          "Default":"m4.xlarge",
          "AllowedValues":[
@@ -39,24 +138,24 @@
          "Type":"String",
          "Default":"Windows Server 2019 Datacenter",
          "AllowedValues":[
-            "Windows Server 2016 Datacenter",
-            "Windows Server 2019 Datacenter"
+            "Windows Server 2019 Datacenter",
+            "Windows Server 2016 Datacenter"
          ]
       },
       "ServerAccesslocation":{
-         "Description":"IP address '0.0.0.0/0' allows everyone access to this EC2 instance. To limit the range of EC2 ip address, please enter a valid address range.",
+         "Description":"IP address '0.0.0.0/0' allows everyone to access this EC2 instance. Please enter a valid address range (in a CIDR format) to limit the range of IP addresses which can access this EC2 instance.",
          "Type":"String",
          "MinLength":"9",
          "MaxLength":"18",
          "AllowedPattern":"(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
-         "ConstraintDescription":"Must be a valid IP CIDR range of the form x.x.x.x/x."
+         "ConstraintDescription":"Must be a valid IP CIDR range in a 'X.X.X.X/X' format."
       },
       "VolumeParameterType":{
          "Type":"String",
-         "Default":"gp2 (General purpose SSD volume that balances prices and performance for a wide variety of workloads)",
+         "Default":"gp2 (General purpose SSD volume that balances price and performance for a wide variety of workloads)",
          "AllowedValues":[
-            "gp2 (General purpose SSD volume that balances prices and performance for a wide variety of workloads)",
-            "io1 (Highest performance SSD volume for mission-critical,low latency or high throughput workloads)"
+            "gp2 (General purpose SSD volume that balances price and performance for a wide variety of workloads)",
+            "io1 (Highest performance SSD volume for mission-critical, low latency or high throughput workloads)"
          ]
       },
       "VolumeSize":{
@@ -70,44 +169,43 @@
          ]
       },
       "VPCID":{
-         "Description":"Stack will be created in selected VPC. To launch stack in new VPC, please create new VPC.",
+         "Description":"Stack will be created in the selected VPC. To launch stack in a new VPC, please create a new VPC first.",
          "AllowedPattern":".+",
          "Type":"AWS::EC2::VPC::Id",
-         "ConstraintDescription":"Please select VPCID from dropdown."
+         "ConstraintDescription":"Please select VPC ID from the dropdown."
       },
       "Subnet":{
          "AllowedPattern":".+",
-         "Description": "Please select subnet for EC2.",
+         "Description": "Please select a subnet for EC2 instance.",
          "Type":"AWS::EC2::Subnet::Id",
-         "ConstraintDescription":"Please select subnet from dropdown."
+         "ConstraintDescription":"Please select a subnet for EC2 instance from the dropdown."
       },
       "DatabaseSubnets": {
        "AllowedPattern":".+",
-       "Description": "The selected VPC should contains atleast 2 subnets in different availablity zones. (Not needed in case of an existing database server instance)",
+       "Description": "The selected VPC should contain at least 2 subnets in a different availablity zones. This is not required in case of an existing database server instance.",
        "Type": "List<AWS::EC2::Subnet::Id>",
-       "ConstraintDescription":"Please select atleast two subnet from dropdown."
-       
-    },
-      "SupportScalablity":{
+       "ConstraintDescription":"Please select at least 2 subnets from the dropdown."
+       },
+      "SupportScalability":{
+         "Description":"Any Additional Polling Engine (APE) or Additional Web Server (AWS) which can be deployed on-premises or in the cloud. Running on a separate server that extends the monitoring capacity of your SolarWinds installation.",
          "Type":"String",
-         "Default":"Yes (This will enable TCP ports 1801,5671 and 17777 by default)",
+         "Default":"No",
          "AllowedValues":[
-            "Yes (This will enable TCP ports 1801,5671 and 17777 by default)",
-            "No"
+            "No",
+            "Yes (This will enable TCP ports 1801, 5671 and 17777 by default)"
          ]
       },
-      "ScalablityAccesslocation":{
-         "Description":"Please set CIDR to 0.0.0.0/0 to allow all IP addresses access, x.x.x.x/32 to allow one specific IP address, or another CIDR range. This field is only required if Scalability Support is choosen.",
+      "ScalabilityAccessLocation":{
+         "Description":"Please set CIDR to 0.0.0.0/0 to allow all IP addresses to access EC2 scalability ports, x.x.x.x/32 to allow one specific IP address, or another CIDR range. This field is only required if 'Support Orion Scalability Engine' field value is set to 'Yes'.",
          "Type":"String"
       },
-      "DBInstallaionTypeParameter":{
+      "DBInstallationTypeParameter":{
          "Type":"String",
-         "Default":"Select a database type....",
-         "Description": "Orion will create a 'db.m4.large' Microsoft SQL Server database  which is recommended for most evaluations. Upgrading the  database server  may be done any time through the AWS Console and does not require any changes to Orion.",
+         "Default":"Option 1: Create a new database",
+         "Description": "Orion will create a 'db.m4.large' Microsoft SQL Server database which is recommended for most evaluations. Upgrading the database server may be done at any time through the AWS Console and does not require any changes to Orion.",
          "AllowedValues":[
-            "Select a database type....",
-            "Option 1: Create new database",
-            "Option 2: Use existing database"
+            "Option 1: Create a new database",
+            "Option 2: Use an existing database"
          ]
       },
       "AllocatedStorage":{
@@ -117,39 +215,38 @@
             "250",
             "500",
             "1000"
-            
          ]
       },
       "DBServerNameParameter":{
          "Type":"String",
          "NoEcho":"false",
-         "Default":"Please enter fully qualified SQL Server Name",
-         "Description":"Database Server Name is not required for 'Create new database' option."
+         "Default":"Please enter a Fully Qualified Domain Name (FQDN) of SQL Server",
+         "Description":"Database Server Name is not required for 'Create a new database' option. For 'Use an existing database' option, provide a Fully Qualified Domain Name (FQDN) of SQL Server."
       },
       "DBNameParameter":{
          "Type":"String",
-         "Description":"The Database Name can contain letters, numbers and hyphens only.",
+         "Description":"Only letters (a-z, A-Z) and numbers (0-9) are allowed.",
          "NoEcho":"false",
          "AllowedPattern":"^[A-Za-z0-9_-]*$",
          "MinLength":"1",
-         "ConstraintDescription":"The Database Name can not empty and can contain letters, numbers and hyphens only."
+         "ConstraintDescription":"The Database Name cannot be empty. Only letters (a-z, A-Z) and numbers (0-9) are allowed."
       },
       "DBUserName":{
          "Type":"String",
-         "Description":"First character must be a letter. Letters (A-Z) and numbers (0-9) are allowed.",
+         "Description":"First character must be a letter. Only letters (a-z, A-Z) and numbers (0-9) are allowed.",
          "NoEcho":"true",
          "AllowedPattern":"[a-zA-Z][a-zA-Z0-9]*",
          "MinLength":"1",
          "MaxLength":"16",
-         "ConstraintDescription":"1 to 16 alphanumeric characters. First character must be a letter."
+         "ConstraintDescription":"Provide 1 to 16 alphanumeric characters. First character must be a letter. Only letters (a-z, A-Z) and numbers (0-9) are allowed."
       },
       "DBPassword":{
          "Type":"String",
-         "Description":"Minimum 8 characters. The following characters are not allowed: (slash), (double quote) and (at sign).",
+         "Description":"Minimum 8 characters. The following characters are not allowed: / (slash), \" (double quote) and @ (at sign).",
          "NoEcho":"true",
          "MinLength":"8",
          "AllowedPattern":"[^\\\\\"/@]*$",
-         "ConstraintDescription":"Constraints: At least 8 printable ASCII characters. Can't contain any of the following: / (slash), (double quote) and @ (at sign)."
+         "ConstraintDescription":"Constraints: At least 8 printable ASCII characters. Cannot contain any of the following: / (slash), (double quote) and @ (at sign)."
       }
    },
    "Metadata":{
@@ -168,10 +265,27 @@
                   "default":"Default Product"
                },
                "Parameters":[
-                  "EOCProduct"
+                  "WPMProduct"
                ]
             },
-
+            {
+               "Label":{
+                  "default":"Additional Orion Products"
+               },
+               "Parameters":[
+                  "SAMProduct",
+                  "VMANProduct",
+                  "SCMProduct",
+                  "NPMProduct",
+                  "NTAProduct",
+                  "NCMProduct",
+                  "IPAMProduct",
+                  "LAProduct",
+                  "SRMProduct",
+                  "UDTProduct",
+                  "VNQMProduct"
+               ]
+            },
             {
                "Label":{
                   "default":"Infrastructure Provisioning"
@@ -200,8 +314,8 @@
                   "default":"Orion Installation"
                },
                "Parameters":[
-                  "SupportScalablity",
-                  "ScalablityAccesslocation"
+                  "SupportScalability",
+                  "ScalabilityAccessLocation"
                ]
             },
             {
@@ -209,7 +323,7 @@
                   "default":"Configure Database Settings"
                },
                "Parameters":[
-                  "DBInstallaionTypeParameter"
+                  "DBInstallationTypeParameter"
                ]
             },
             {
@@ -226,8 +340,41 @@
              "Password":{
                 "default":"Password *"
              },
-             "EOCProduct": {
-                "default": "Enterprise Operations Console (EOC)"
+             "SAMProduct": {
+               "default": "Install Server & Application Monitor (SAM)?"
+             },
+             "VMANProduct": {
+               "default": "Install Virtualization Manager (VMAN)?"
+             },
+             "SCMProduct": {
+               "default": "Install Server Configuration Monitor (SCM)?"
+             },
+             "WPMProduct": {
+               "default": "Install Web Performance Monitor (WPM)?"
+             },
+             "NPMProduct": {
+               "default": "Install Network Performance Monitor (NPM)?"
+             },
+             "NTAProduct": {
+               "default": "Install NetFlow Traffic Analyzer (NTA)?"
+             },
+             "NCMProduct": {
+               "default": "Install Network Configuration Manager (NCM)?"
+             },
+             "IPAMProduct": {
+               "default": "Install IP Address Manager (IPAM)?"
+             },
+             "LAProduct": {
+               "default": "Install Log Analyzer (LA)?"
+             },
+             "SRMProduct": {
+               "default": "Install Storage Resource Monitor (SRM)?"
+             },
+             "UDTProduct": {
+               "default": "Install User Device Tracker (UDT)?"
+             },
+             "VNQMProduct": {
+               "default": "Install VoIP & Network Quality Manager (VNQM)?"
              },
             "KeyName":{
                "default":"EC2 Key Pair *"
@@ -256,22 +403,22 @@
             "DatabaseSubnets" :{
              "default":"Select Database Subnet *"
             },
-            "SupportScalablity":{
+            "SupportScalability":{
                "default":"Support Orion Scalability Engine? *"
             },
-            "ScalablityAccesslocation":{
-               "default":"Remote Poller Engine IP Address Range"
+            "ScalabilityAccessLocation":{
+               "default":"Orion Scalability Engine IP Address Range"
             },
-            "DBInstallaionTypeParameter":{
+            "DBInstallationTypeParameter":{
                "default":"Choose Database Type *"
             },
 
             "AllocatedStorage":{
-               "default":"Allocated Database Storage"
+               "default":"Allocated Database Storage (GB)"
             },
 
             "DBServerNameParameter":{
-               "default":"Database Server Name (This should be a fully qualified server name)"
+               "default":"Database Server Name"
             },
             "DBNameParameter":{
                "default":"Database Name *"
@@ -288,7 +435,7 @@
    "Resources":{
       "NonScalableSecurityGroup":{
          "Type":"AWS::EC2::SecurityGroup",
-         "Condition": "ScalablityNotRequired", 
+         "Condition": "ScalabilityNotRequired", 
             "Properties":{
             "GroupDescription":"RDP",
             "VpcId":{
@@ -306,8 +453,8 @@
                },
                {
                   "IpProtocol":"tcp",
-                  "FromPort":"8787",
-                  "ToPort":"8787",
+                  "FromPort":"443",
+                  "ToPort":"443",
                   "CidrIp":"0.0.0.0/0"
                }
             ],
@@ -329,9 +476,9 @@
            ]
          }
       },
-      "EC2ScalibilitySecurityGroup":{
+      "EC2ScalabilitySecurityGroup":{
          "Type":"AWS::EC2::SecurityGroup",
-           "Condition": "isScalablityRequired",
+           "Condition": "isScalabilityRequired",
          "Properties":{
             "GroupDescription":"RDP, HTTP, HTTPS, ICMP",
             "VpcId":{
@@ -351,7 +498,7 @@
                   "FromPort":"1801",
                   "ToPort":"1801",
                   "CidrIp":{
-                     "Ref":"ScalablityAccesslocation"
+                     "Ref":"ScalabilityAccessLocation"
                   }
                },
                {
@@ -359,7 +506,7 @@
                   "FromPort":"5671",
                   "ToPort":"5671",
                   "CidrIp":{
-                     "Ref":"ScalablityAccesslocation"
+                     "Ref":"ScalabilityAccessLocation"
                   }
                },
                {
@@ -367,13 +514,13 @@
                   "FromPort":"17777",
                   "ToPort":"17777",
                   "CidrIp":{
-                     "Ref":"ScalablityAccesslocation"
+                     "Ref":"ScalabilityAccessLocation"
                   }
                },
                {
                   "IpProtocol":"tcp",
-                  "FromPort":"8787",
-                  "ToPort":"8787",
+                  "FromPort":"443",
+                  "ToPort":"443",
                   "CidrIp":"0.0.0.0/0"
                }
             ],
@@ -389,7 +536,7 @@
                   "Value" : { 
                      "Fn::Join" : ["", [
                         { "Ref": "AWS::StackName"}, 
-                        "EC2ScalibilitySecurityGroup" ]]
+                        "EC2ScalabilitySecurityGroup" ]]
                   } 
                }
            ]
@@ -468,10 +615,6 @@
                      }
                   },
                   "commands":{
-                     "run-dotnet-installer-silently":{
-                        "command":"powershell.exe -ExecutionPolicy RemoteSigned c:\\cfn\\artifacts\\AwsNet48Install.ps1",
-                            "waitAfterCompletion":"forever"
-                         },
                      "update-silent-config-and-install-orion":{
                        "command":{
                           "Fn::Join":[
@@ -520,12 +663,138 @@
                                    "Ref":"Password"
                                 },
                                 "'",
-
-                                 "; eocproduct = ",
+                                 "; samproduct = ",
                                  "'",
                                  {
-                                    "Ref":"EOCProduct"
-                                 },"'",
+                                    "Fn::If": [
+                                    "isSAMProduct",
+                                    "SAM",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; vmanproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isVMANProduct",
+                                    "VMAN",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; scmproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isSCMProduct",
+                                    "SCM",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; wpmproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isWPMProduct",
+                                    "WPM",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; npmproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isNPMProduct",
+                                    "NPM",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; ntaproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isNTAProduct",
+                                    "NTA",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; ncmproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isNCMProduct",
+                                    "NCM",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; ipamproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isIPAMProduct",
+                                    "IPAM",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; laproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isLAProduct",
+                                    "OrionLogManager",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; srmproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isSRMProduct",
+                                    "SRM",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; udtproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isUDTProduct",
+                                    "UDT",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
+                                 "; vnqmproduct = ",
+                                 "'",
+                                 {
+                                    "Fn::If": [
+                                    "isVNQMProduct",
+                                    "VNQM",
+                                    {
+                                       "Ref":"AWS::NoValue"
+                                    }
+                                    ]
+                                 }, "'",
                                  "; awsStackName = ",
                                  "'",
                                  {
@@ -536,6 +805,7 @@
                                  {
                                     "Ref": "AWS::Region"
                                  }, "'",
+
                                 "}"
                              ]
                           ]
@@ -576,9 +846,9 @@
             "SecurityGroupIds":[
                {
                   "Fn::If":[
-                     "isScalablityRequired",
+                     "isScalabilityRequired",
                      {
-                        "Ref":"EC2ScalibilitySecurityGroup"
+                        "Ref":"EC2ScalabilitySecurityGroup"
                      },
                      {
                         "Ref":"NonScalableSecurityGroup"
@@ -714,13 +984,13 @@
  
            {
              "Fn::If": [
-               "isScalablityRequired",
+               "isScalabilityRequired",
                {
                 "IpProtocol":"tcp",
                 "FromPort":"1433",
                 "ToPort":"1433",
              "SourceSecurityGroupId": {
-                   "Ref": "EC2ScalibilitySecurityGroup"
+                   "Ref": "EC2ScalabilitySecurityGroup"
                  }
                },
                {
@@ -759,69 +1029,68 @@
    "Mappings":{
       "RegionMap":{
          "us-east-1":{
-            "Windows2016":"ami-092f3f820c6f7856d",
-            "Windows2019":"ami-0f1a68fe9e201939e"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "us-east-2":{
-            "Windows2016":"ami-0833104f83deab338",
-            "Windows2019":"ami-0182e552fba672768"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "us-west-1":{
-            "Windows2016":"ami-08dc1ca51e27079b0",
-            "Windows2019":"ami-089f7b5c2b6954184"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "us-west-2":{
-            "Windows2016":"ami-09e71fb1baf16d0cd",
-            "Windows2019":"ami-0a1d405ce719bebfd"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "ap-south-1":{
-            "Windows2016":"ami-0a6207e27499906a8",
-            "Windows2019":"ami-0984d468a269f8732"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "ap-northeast-2":{
-            "Windows2016":"ami-0ca8f1ccdb6072b95",
-            "Windows2019":"ami-03adb46596424ffae"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "ap-southeast-1":{
-            "Windows2016":"ami-02f8bb5d22d8a6f45",
-            "Windows2019":"ami-042d0d60c5d93a987"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "ap-southeast-2":{
-            "Windows2016":"ami-076acf0f99b739999",
-            "Windows2019":"ami-0d740b96c9b6cc5a7"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "ap-northeast-1":{
-            "Windows2016":"ami-0c35722264774a959",
-            "Windows2019":"ami-02c8625672a43c5e0"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
-         
          "ca-central-1":{
-            "Windows2016":"ami-0fcebaeb4fd311763",
-            "Windows2019":"ami-088f331a37b8d92cb"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "eu-central-1":{
-            "Windows2016":"ami-0cbf1b1038bbb408d",
-            "Windows2019":"ami-0ab54e065e88f7520"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "eu-west-1":{
-            "Windows2016":"ami-0e484c84e6d59f3a3",
-            "Windows2019":"ami-0f26101934dec146b"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "eu-west-2":{
-            "Windows2016":"ami-01f0765e60ddc2030",
-            "Windows2019":"ami-0ea7295f82e08ffa2"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "eu-west-3":{
-            "Windows2016":"ami-02287d4f5bb0057ed",
-            "Windows2019":"ami-0983860d1168702bb"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "eu-north-1":{
-            "Windows2016":"ami-00aee339bceccace9",
-            "Windows2019":"ami-0fac9433645ae88d0"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          },
          "sa-east-1":{
-            "Windows2016":"ami-00aad975eff1d9a01",
-            "Windows2019":"ami-0ace3320f5f88d40b"
+            "Windows2016":"ami-0fd514fcda314f145",
+            "Windows2019":"ami-074bfc9188e9e0245"
          }
       }
    },
@@ -842,18 +1111,18 @@
             "Windows Server 2019 Datacenter"
          ]
       },
-      "isScalablityRequired":{
+      "isScalabilityRequired":{
          "Fn::Equals":[
             {
-               "Ref":"SupportScalablity"
+               "Ref":"SupportScalability"
             },
-            "Yes (This will enable TCP ports 1801,5671 and 17777 by default)"
+            "Yes (This will enable TCP ports 1801, 5671 and 17777 by default)"
          ]
       },
-      "ScalablityNotRequired":{
+      "ScalabilityNotRequired":{
          "Fn::Equals":[
             {
-               "Ref":"SupportScalablity"
+               "Ref":"SupportScalability"
             },
             "No"
          ]
@@ -863,34 +1132,130 @@
             {
                "Ref":"VolumeParameterType"
             },
-            "gp2 (General purpose SSD volume that balances prices and performance for a wide variety of workloads)"
+            "gp2 (General purpose SSD volume that balances price and performance for a wide variety of workloads)"
          ]
       },
       "isExistingDatabase":{
          "Fn::Equals":[
             {
-               "Ref":"DBInstallaionTypeParameter"
+               "Ref":"DBInstallationTypeParameter"
             },
-            "Option 2: Use existing database"
+            "Option 2: Use an existing database"
          ]
       },
       "isNewDatabase":{
          "Fn::Equals":[
             {
-               "Ref":"DBInstallaionTypeParameter"
+               "Ref":"DBInstallationTypeParameter"
             },
-            "Option 1: Create new database"
+            "Option 1: Create a new database"
          ]
-      }
+      },
+      "isSAMProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "SAMProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isVMANProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "VMANProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isSCMProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "SCMProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isWPMProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "WPMProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isNPMProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "NPMProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isNTAProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "NTAProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isNCMProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "NCMProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isIPAMProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "IPAMProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isLAProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "LAProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isSRMProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "SRMProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isUDTProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "UDTProduct"
+           },
+           "Yes"
+         ]
+       },
+      "isVNQMProduct": {
+         "Fn::Equals": [
+           {
+             "Ref": "VNQMProduct"
+           },
+           "Yes"
+         ]
+       }
    },
    "Rules":{
       "rule1":{
          "RuleCondition":{
             "Fn::Equals":[
                {
-                  "Ref":"DBInstallaionTypeParameter"
+                  "Ref":"DBInstallationTypeParameter"
                },
-               "Option 2: Use existing database"
+               "Option 2: Use an existing database"
             ]
          },
          "Assertions":[
@@ -899,7 +1264,7 @@
                   "Fn::Not":[
                      {
                         "Fn::Equals":[
-                           "Please enter fully qualified SQL Server Name",
+                           "Please enter a Fully Qualified Domain Name (FQDN) of SQL Server",
                            {
                               "Ref":"DBServerNameParameter"
                            }
@@ -907,7 +1272,7 @@
                      }
                   ]
                },
-               "AssertDescription":"Please enter fully qualified SQL Server Name."
+               "AssertDescription":"Please enter a Fully Qualified Domain Name (FQDN) of SQL Server."
             }
          ]
       },
@@ -927,14 +1292,14 @@
                      }
                   ]
                },
-               "AssertDescription":"All Subnets must in the VPC"
+               "AssertDescription":"All subnets must be in the same VPC."
             }
          ]
       }
    },
    "Outputs":{
       "OrionServerUrl":{
-         "Description":"The end point of the Orion Server",
+         "Description":"The HTTPS endpoint of the Orion Server",
          "Value":{
             "Fn::Join":[
                "",
@@ -946,7 +1311,6 @@
                         "PublicDnsName"
                      ]
                   },
-                  ":8787",
                   "/Orion"
                ]
             ]
@@ -954,3 +1318,4 @@
       }
    }
  }
+

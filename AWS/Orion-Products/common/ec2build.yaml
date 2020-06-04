@@ -1,0 +1,69 @@
+name: CopyArtifactsFromS3
+description: This document copies all required artifacts from S3 to AMI.
+schemaVersion: 1.0
+
+phases:
+  - 
+    name: 'build'
+    steps:
+      -
+        name: CreateArtifactsFolder
+        action: ExecutePowerShell
+        inputs:
+          commands:
+            - 
+              New-Item -Path 'C:\cfn\artifacts\' -ItemType Directory
+      - 
+        name: DownloadCode
+        action: S3Download
+        onFailure: Abort
+        maxAttempts: 3
+        inputs:
+          - 
+            source: s3://solarwinds-orion-marketplace/code/*
+            destination: C:\cfn\artifacts\
+      - 
+        name: DownloadInstallers
+        action: S3Download
+        maxAttempts: 3
+        inputs:
+          - 
+            source: s3://solarwinds-orion-marketplace/installers/*
+            destination: C:\cfn\artifacts\
+      -
+        name: InstallNet48
+        action: ExecuteBinary
+        onFailure: Abort
+        maxAttempts: 3
+        inputs:
+          path: '{{build.DownloadInstallers.inputs[0].destination}}\ndp48-web.exe'
+          arguments:
+            - /q
+            - /norestart
+      -
+        name: RebootAfterConfigApplied
+        action: Reboot
+        inputs:
+          delaySeconds: 60
+      -
+        name: InstallWindowsUpdates
+        action: UpdateOS
+  - 
+    name: 'validate'
+    steps:
+      - 
+        name: CheckFiles
+        action: ExecutePowerShell
+        onFailure: Abort
+        inputs:
+          commands:
+            -
+              if (-not (Test-Path '{{build.DownloadInstallers.inputs[0].destination}}')) {
+                exit 1
+              }
+
+              if ((Get-ChildItem '{{build.DownloadInstallers.inputs[0].destination}}' | Measure-Object).Count -ne 6) {
+                exit 2
+              }
+
+              exit 0
