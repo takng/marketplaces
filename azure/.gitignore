@@ -1,10 +1,12 @@
 Deploy-AzTemplate.ps1
 SideLoad-AzCreateUIDefinition.ps1
 
-**/templates/azuredeploy.parameters.json
+azuredeploy.parameters*json
 **/templates/installation_script.ps1
 **/templates/installer
 **/templates/DSC
+
+SolarWinds-Orion-Installer.exe
 
 *.txt
 *.log

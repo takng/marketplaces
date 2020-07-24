@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
-	"handler": "Microsoft.Compute.MultiVm",
+	"handler": "Microsoft.Azure.CreateUIDef",
 	"version": "0.1.2-preview",
 	"parameters": {
 		"basics": [],
@@ -20,8 +20,8 @@
 						"defaultValue": "vmorionnpm",
 						"constraints": {
 							"required": true,
-							"regex": "^[a-z0-9A-Z-]{3,79}$",
-							"validationMessage": "The Virtual Machine name must be between 3 and 79 characters long and contain letters, numbers and hyphens only."
+							"regex": "^[^\/\"'[\\]:|<>+=;,?*@&_\\s]{1}[^\/\"'[\\]:|<>+=;,?*@&\\s]{1,13}[^\/\"'[\\]:|<>+=;,?*@&\\-.\\s]{1}$",
+							"validationMessage": "Azure resource names cannot contain special characters \/\"'[]:|<>+=;,?*@& or begin with '_' or end with '.' or '-'. Maximum length 15 characters."
 						}
 					},
 					{
@@ -91,9 +91,12 @@
 						"label": "Windows Admin Username",
 						"osPlatform": "Windows",
 						"constraints": {
-							"required": true
+							"required": true,
+							"regex": "^(?!administrator$|admin$|[0-9]$|123$|a$|actuser$|adm$|admin[0-9]?$|aspnet$|backup$|console$|david$|guest$|john$|owner$|root$|server$|sql$|support$|support_388945a0$|sys$|test[0-9]?$|user[0-9]?$|.+\\.$)[\\w~`!@#$%^&*()_\\-+=[{\\]}\\|;:'\",<.>\/?]{1,20}$",
+							"validationMessage": "Username cannot end with '.'. Maximum length - 20 characters. Disallowed values: 'admin', 'user', 'user1', 'test', 'user2', 'test1', 'user3', 'admin1', '1', '123', 'a', 'actuser', 'adm', 'admin2', 'aspnet', 'backup', 'console', 'david', 'guest', 'john', 'owner', 'root', 'server', 'sql', 'support', 'support_388945a0', 'sys', 'test2', 'test3', 'user4', 'user5'."
+	
 						},
-						"toolTip": "Provide admin username for the virtual machine"
+						"toolTip": "Provide admin username for the virtual machine. Maximum length 20 characters."
 					},
 					{
 						"name": "vmPwd",
@@ -189,7 +192,7 @@
 							"subnet1": {
 								"label": "Subnet",
 								"defaultValue": {
-									"name": "[concat('snet-orion-', location())]",
+									"name": "snet-orion-1",
 									"addressPrefixSize": "/24"
 								},
 								"constraints": {
@@ -295,9 +298,9 @@
 								"label": "DB Server Name (FQDN)",
 								"toolTip": "Provide a Fully Qualified SQL Server name. This must be an existing SQL Server.",
 								"constraints": {
-									"regex": "([^.]*\\.){3}",
+									"regex": "([a-zA-Z0-9-]*\\.){3}",
 									"required": true,
-									"validationMessage": "The SQL Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only alongwith FQDN (e.g database.windows.net). The SQL server should be an existing server."
+									"validationMessage": "The SQL Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only alongwith FQDN (e.g [your_server_name].database.windows.net). The SQL server should be an existing server."
 								}
 							},
 							{
@@ -306,9 +309,9 @@
 								"label": "Database Name",
 								"toolTip": "Provide Orion database name.",
 								"constraints": {
-									"regex": "^(?!master$|model$|msdb$|tempdb$|pdwtempdb$|pdwtempdb1$|pdwtempdb2$|DWConfiguration$|DWDiagnostics$|DWQueue$)[^.]{1,128}$",
+									"regex": "^(?!master$|model$|msdb$|tempdb$|pdwtempdb$|pdwtempdb1$|pdwtempdb2$|DWConfiguration$|DWDiagnostics$|DWQueue$)[\\w~`!@#$%^&*()_\\-+=[{\\]}\\|;:',<>\/?]{1,128}$",
 									"required": true,
-									"validationMessage": "The Database Name should be maximum 128 characters long and should not contain reserved words (like master, model, tempdb, etc.)"
+									"validationMessage": "The Database Name should be maximum 128 characters long and should not contain reserved words (like master, model, tempdb, etc.) and double quote characters: '\"'"
 								}
 							}
 						],
@@ -336,8 +339,8 @@
 						},
 						"constraints": {
 							"required": true,
-							"regex": "^(((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))|((?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]))|((?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*]))|((?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])))(?=.{12,128})",
-							"validationMessage": "Your password must be at least 12 characters in length. Your password must contain characters from three of the following categories: English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)"
+							"regex": "^(((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))|((?=.*[a-z])(?=.*[A-Z])(?=.*[~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?]))|((?=.*[a-z])(?=.*[0-9])(?=.*[~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?]))|((?=.*[A-Z])(?=.*[0-9])(?=.*[~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?])))[\\w~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?]{8,128}$",
+							"validationMessage": "Your password must be at least 8 characters in length. Your password must contain characters from three of the following categories: English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.) except of single and double quote characters: ''' and '\"'"
 						},
 						"visible": true
 					}
@@ -360,6 +363,8 @@
 						},
 						"toolTip": "Create NPM application password to access Orion Web Console for \"Admin\" user",
 						"constraints": {
+							"regex": "^[\\w~`!@#$%^&*()_\\-+=[{\\]}\\|;:',<.>\/?]{8,50}$",
+							"validationMessage": "Orion 'Admin' password must be at least 8 characters in length. It may contain letters, numbers and most of special characters (except of double quote '\"'). Maximum length 50 characters.",
 							"required": true
 						}
 					},
@@ -410,7 +415,7 @@
 			"subnetPrefix": "[steps('NetworkSettings').virtualNetwork.subnets.subnet1.addressPrefix]",
 			"virtualNetworkRG": "[steps('NetworkSettings').virtualNetwork.resourceGroup]",
 			"publicIpNewOrExisting": "[steps('NetworkSettings').publicIpAddress.newOrExistingOrNone]",
-			"publicIpAddressName": "[steps('NetworkSettings').publicIpAddress.name]",
+			"publicIpAddressName": "[if(equals(steps('NetworkSettings').publicIpAddress.newOrExistingOrNone, 'none'), 'pip-orion', steps('NetworkSettings').publicIpAddress.name)]",
 			"publicIpDns": "[steps('NetworkSettings').publicIpAddress.domainNameLabel]",
 			"publicIpResourceGroupName": "[steps('NetworkSettings').publicIpAddress.resourceGroup]",
 			"publicIpAddressType": "[steps('NetworkSettings').publicIpAddress.publicIPAllocationMethod]",

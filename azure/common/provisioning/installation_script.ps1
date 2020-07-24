@@ -69,7 +69,7 @@ Write-Host "Download Silent installer config file Completed"; [datetime]::Now
 
 #download the installer from Artifacts
 Write-Host "Downloading installer from $installerUri"; [datetime]::Now
-$installer_name = "Solarwinds-Orion-Installer.exe"
+$installer_name = "SolarWinds-Orion-Installer.exe"
 Invoke-Request -Uri $installerUri -OutFile "C:\Windows\Temp\$installer_name" -MaximumRetryCount 3 -RetryIntervalSec 30
 Write-Host "Download installer Completed"; [datetime]::Now
 

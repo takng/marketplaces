@@ -104,6 +104,11 @@ $Pids = @{
     SCM  = "ee45e73f-5db8-5831-9a58-52aa236b27bb"
 }
 
+if (-not (Test-Path ".\common\installer\SolarWinds-Orion-Installer.exe")) {
+    Write-Host "Please put SolarWinds-Orion-Installer.exe file into '.\common\installer\' folder."
+    exit
+}
+
 if (-not $ResourceGroupName) {
     $ResourceGroupName = "rg-test-$Product"
 }
@@ -132,10 +137,10 @@ if (Test-Path $DscSourceFolder) {
 }
 
 Write-Host "Copying installers to $WorkFolder\installer..."
-Copy-Item -Path ".\common\installer\*.exe" -Destination $InstallerFolder -Recurse
+Copy-Item -Path ".\common\installer\*.exe" -Destination $InstallerFolder -Recurse -Force
 
 Write-Host "Copying provisioning scripts to $WorkFolder..."
-Copy-Item -Path ".\common\provisioning\*" -Destination $WorkFolder -Recurse
+Copy-Item -Path ".\common\provisioning\*" -Destination $WorkFolder -Recurse -Force
 
 $TemplateParameters = @"
 { 
@@ -173,7 +178,7 @@ if ($BuildPackage) {
 }
 
 if ($ParametersFile) {
-    Copy-Item -Path $ParametersFile -Destination $AzureDeployParametersFilePath
+    #Copy-Item -Path $ParametersFile -Destination $AzureDeployParametersFilePath
 }
 else {
     $TemplateParameters = @"

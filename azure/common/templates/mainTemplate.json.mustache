@@ -239,7 +239,7 @@
     },
     "variables": {
         "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat('config/standard.xml', parameters('_artifactsLocationSasToken')))]",
-        "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/Solarwinds-Orion-Installer.exe', parameters('_artifactsLocationSasToken')))]",
+        "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/SolarWinds-Orion-Installer.exe', parameters('_artifactsLocationSasToken')))]",
         "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('installation_script.ps1', parameters('_artifactsLocationSasToken')))]",
         "publicIpAddressId": {
             "id": "[resourceId(parameters('publicIpResourceGroupName'), 'Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName'))]"
@@ -336,30 +336,19 @@
             }
         },
         {
-            "name": "[variables('networkInterfaceName')]",
-            "type": "Microsoft.Network/networkInterfaces",
+            "condition": "[equals(parameters('publicIpNewOrExisting'), 'new')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('publicIpAddressName')]",
             "apiVersion": "2019-11-01",
             "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-                "[resourceId('Microsoft.Network/publicIpAddresses/', parameters('publicIpAddressName'))]"
-            ],
             "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "subnet": {
-                                "id": "[variables('subnetRef')]"
-                            },
-                            "privateIPAllocationMethod": "Dynamic",
-                            "publicIPAddress": "[if(not(equals(parameters('publicIpNewOrExisting'), 'none')), variables('publicIpAddressId') , json('null'))]"
-                        }
-                    }],
-                "networkSecurityGroup": {	
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"	
+                "publicIpAllocationMethod": "[parameters('publicIpAddressType')]",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('publicIpDns')]"
                 }
+            },
+            "sku": {
+                "name": "[parameters('publicIpAddressSku')]"
             }
         },
         {
@@ -392,19 +381,30 @@
             }
         },
         {
-            "condition": "[equals(parameters('publicIpNewOrExisting'), 'new')]",
-            "name": "[parameters('publicIpAddressName')]",
-            "type": "Microsoft.Network/publicIpAddresses",
+            "name": "[variables('networkInterfaceName')]",
+            "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2019-11-01",
             "location": "[parameters('location')]",
+            "dependsOn": [
+                "[parameters('publicIpAddressName')]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]",
+                "[parameters('virtualNetworkName')]"
+            ],
             "properties": {
-                "publicIpAllocationMethod": "[parameters('publicIpAddressType')]",
-                "dnsSettings": {
-                    "domainNameLabel": "[parameters('publicIpDns')]"
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": "[if(not(equals(parameters('publicIpNewOrExisting'), 'none')), variables('publicIpAddressId') , json('null'))]"
+                        }
+                    }],
+                "networkSecurityGroup": {	
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"	
                 }
-            },
-            "sku": {
-                "name": "[parameters('publicIpAddressSku')]"
             }
         },
         {
@@ -541,7 +541,7 @@
                     "properties": {
                         "publisher": "Microsoft.Powershell",
                         "type": "DSC",
-                        "typeHandlerVersion": "2.80",
+                        "typeHandlerVersion": "2.77",
                         "autoUpgradeMinorVersion": "true",
                         "settings": {
                             "wmfVersion": "latest",
@@ -588,19 +588,23 @@
                                     , if(equals(parameters('provisionSqlServer'), bool('false'))
                                         , parameters('dbServerName')
                                         , reference(resourceId('Microsoft.SQL/servers', parameters('dbServerName')), '2019-06-01-preview').fullyQualifiedDomainName)
-                                ,' -databaseName ',parameters('databaseName')
-                                ,' -dbUserName ',parameters('dbUserName')
-                                ,' -dbPassword ',parameters('dbPassword')
-                                ,' -appUserPassword ',parameters('appUserPassword')
+                                ,' -databaseName ', replace(replace(replace(replace(replace(replace(parameters('databaseName'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>')
+                                ,' -dbUserName ',replace(replace(replace(replace(replace(replace(parameters('dbUserName'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>')
+                                ,' -dbPassword ', replace(replace(replace(replace(replace(replace(parameters('dbPassword'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>')
+                                ,' -appUserPassword ', replace(replace(replace(replace(replace(replace(parameters('appUserPassword'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>')
                                 ,' -vmName ',parameters('virtualMachineName')
                                 {{#additionalDatabase}}
                                 ,' -{{product}}DBServerName '
                                     , if(equals(parameters('provisionSqlServer'), bool('false'))
                                         , parameters('{{product}}ServerName')
                                         , reference(resourceId('Microsoft.SQL/servers', parameters('dbServerName')), '2019-06-01-preview').fullyQualifiedDomainName)
-                                ,' -{{product}}DBName ', parameters('{{product}}DatabaseName')
-                                ,' -{{product}}DBUserName ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('{{product}}UserName'), parameters('dbUserName'))
-                                ,' -{{product}}DBPassword ', if(equals(parameters('provisionSqlServer'), bool('false')), parameters('{{product}}Password'), parameters('dbPassword'))
+                                ,' -{{product}}DBName ', replace(replace(replace(replace(replace(replace(parameters('{{product}}DatabaseName'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>')
+                                ,' -{{product}}DBUserName ', if(equals(parameters('provisionSqlServer'), bool('false')), 
+                                    replace(replace(replace(replace(replace(replace(parameters('{{product}}UserName'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>'),
+                                    replace(replace(replace(replace(replace(replace(parameters('dbUserName'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>'))
+                                ,' -{{product}}DBPassword ', if(equals(parameters('provisionSqlServer'), bool('false')), 
+                                    replace(replace(replace(replace(replace(replace(parameters('{{product}}Password'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>'), 
+                                    replace(replace(replace(replace(replace(replace(parameters('dbPassword'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>'))
                                 {{/additionalDatabase}}
                                 )]"
                         }
@@ -642,7 +646,7 @@
         {{/additionalDatabase}}
         "App URL Link": {
             "type": "string",
-            "value": "[concat('https://', reference(resourceId(parameters('publicIpResourceGroupName'), 'Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName')), '2019-11-01').dnsSettings.fqdn, ':8787/orion')]"
+            "value": "[if(equals(parameters('publicIpNewOrExisting'), 'none'), '', concat('https://', reference(resourceId(parameters('publicIpResourceGroupName'), 'Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName')), '2019-11-01').dnsSettings.fqdn, ':8787/orion'))]"
         },
         "App default User": {
             "type": "string",
