@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <SilentConfig>
   <InstallerConfiguration>
-    <ProductsToInstall>OrionLogManager</ProductsToInstall>
+    <ProductsToInstall></ProductsToInstall>
     <AdvancedInstallMode>True</AdvancedInstallMode>
     <SkipConfigurationWizardRun>False</SkipConfigurationWizardRun>
   </InstallerConfiguration>
@@ -25,7 +25,7 @@
       <Website>
         <Folder>C:\InetPub\SolarWinds</Folder>
         <Address>(All Unassigned)</Address>
-        <Port>8787</Port>
+        <Port>443</Port>
         <ApplicationName>SolarWinds NetPerfMon</ApplicationName>
         <LaunchWebConsole>false</LaunchWebConsole>
         <ConfigurationSkipped_IISNotInstalled>false</ConfigurationSkipped_IISNotInstalled>
@@ -37,22 +37,6 @@
         <SkipHTTPBinding>false</SkipHTTPBinding>
         <DefaultAdminPassword></DefaultAdminPassword>
       </Website>
-      <OrionLogConfiguration>
-        <StorageConfig>
-          <CreateNewDatabase>false</CreateNewDatabase>
-          <DatabaseName>SolarWindsLaDatabase</DatabaseName>
-          <ServerName></ServerName>
-          <UseSQLSecurity>true</UseSQLSecurity>
-          <User>orionadmin</User>
-          <UserPassword></UserPassword>
-          <AccountType>NewSql</AccountType>
-          <Account>SolarWindsLaDatabaseUser</Account>
-          <AccountPassword></AccountPassword>
-        </StorageConfig>
-      </OrionLogConfiguration>
     </Info>
   </Host>
-  <Plugins>
-    <Plugin FactoryType="SolarWinds.ConfigurationWizard.Plugin.LogMgmt.SilentConfigureFactory" Assembly="SolarWinds.ConfigurationWizard.Plugin.LogMgmt"/>
-  </Plugins>
 </SilentConfig>

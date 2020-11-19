@@ -171,11 +171,81 @@
                 "description": "Provide password for the azure sql"
             }
         },
-        "provisionSqlServer": {
+        "ntaServerName": {
+            "type": "string",
+            "defaultValue": "[parameters('dbServerName')]",
+            "metadata": {
+                "description": "Provide server name for the azure sql"
+            }
+        },
+        "ntaDatabaseName": {
+            "type": "string",
+            "defaultValue": "[concat('sqldb-nta-', uniqueString(parameters('guidValue')))]",
+            "metadata": {
+                "description": "Provide database name for the azure sql"
+            }
+        },
+        "ntaUserName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Provide user name for the azure sql"
+            }
+        },
+        "ntaPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Provide password for the azure sql"
+            }
+        },
+        "laServerName": {
+            "type": "string",
+            "defaultValue": "[parameters('dbServerName')]",
+            "metadata": {
+                "description": "Provide server name for the azure sql"
+            }
+        },
+        "laDatabaseName": {
+            "type": "string",
+            "defaultValue": "[concat('sqldb-la-', uniqueString(parameters('guidValue')))]",
+            "metadata": {
+                "description": "Provide database name for the azure sql"
+            }
+        },
+        "laUserName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Provide user name for the azure sql"
+            }
+        },
+        "laPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Provide password for the azure sql"
+            }
+        },
+        "installedProducts": {
+            "type": "string",
+            "defaultValue": "SAM",
+            "metadata": {
+                "description": "List of installed products"
+            }
+        },
+        "useAzureSql": {
             "type": "bool",
             "defaultValue": true,
             "metadata": {
                 "description": "Provide installation type"
+            }
+        },
+        "createDatabases": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Should installer create databases?"
             }
         },
         "windowsLicenseType": {
@@ -207,6 +277,21 @@
             "defaultValue": ""
         }
     },
+    "functions": [{
+        "namespace": "SolarWinds",
+        "members": {
+            "escape": {
+                "parameters": [{
+                    "name": "text",
+                    "type": "string"
+                }],
+                "output": {
+                    "type": "string",
+                    "value": "[replace(replace(replace(replace(replace(replace(parameters('text'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>')]"
+                }
+            }
+        }
+    }],
     "variables": {
         "silentConfigUri": "[uri(parameters('_artifactsLocation'), concat('config/standard.xml', parameters('_artifactsLocationSasToken')))]",
         "installerUri": "[uri(parameters('_artifactsLocation'), concat('installer/SolarWinds-Orion-Installer.exe', parameters('_artifactsLocationSasToken')))]",
@@ -219,9 +304,10 @@
         "subnetRef": "[resourceId(parameters('virtualNetworkRG'), 'Microsoft.Network/virtualNetworks/subnets/', parameters('virtualNetworkName'), parameters('subnetName'))]",
         "dotnetInstallerUri": "[uri(parameters('_artifactsLocation'), concat('installer/ndp48-web.exe', parameters('_artifactsLocationSasToken')))]",
         "machineSetupScriptUri": "[uri(parameters('_artifactsLocation'), concat('DSC/OrionAzureSetup.zip', parameters('_artifactsLocationSasToken')))]",
+        "webConsolePort": 443,
         "basicSecurityRules": [
             {
-                "name": "OrionWebConsole8787",
+                "name": "OrionWebConsole",
                 "properties": {
                     "priority": 1030,
                     "protocol": "TCP",
@@ -230,13 +316,13 @@
                     "sourceAddressPrefix": "*",
                     "sourcePortRange": "*",
                     "destinationAddressPrefix": "*",
-                    "destinationPortRange": "8787"
+                    "destinationPortRange": "[variables('webConsolePort')]"
                 }
             }
         ],
         "ASEsecurityRules": [
             {
-                "name": "OrionWebConsole8787",
+                "name": "OrionWebConsole",
                 "properties": {
                     "priority": 1030,
                     "protocol": "TCP",
@@ -245,7 +331,7 @@
                     "sourceAddressPrefix": "*",
                     "sourcePortRange": "*",
                     "destinationAddressPrefix": "*",
-                    "destinationPortRange": "8787"
+                    "destinationPortRange": "[variables('webConsolePort')]"
                 }
             },
             {
@@ -292,7 +378,7 @@
     },
     "resources": [
         {
-            "apiVersion": "2019-09-01",
+            "apiVersion": "2019-10-01",
             "name": "pid-1a25ce3f-5e14-5bd8-8e9b-70b7933b7ab4",
             "type": "Microsoft.Resources/deployments",
             "properties": {
@@ -378,7 +464,7 @@
             }
         },
         {
-            "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
+            "condition": "[equals(parameters('useAzureSql'), bool('true'))]",
             "name": "[parameters('dbServerName')]",
             "type": "Microsoft.Sql/servers",
             "apiVersion": "2019-06-01-preview",
@@ -393,7 +479,7 @@
             },
             "resources": [
                 {
-                    "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
+                    "condition": "[equals(parameters('useAzureSql'), bool('true'))]",
                     "name": "[parameters('databaseName')]",
                     "type": "databases",
                     "apiVersion": "2019-06-01-preview",
@@ -413,7 +499,47 @@
                     }
                 },
                 {
-                    "condition": "[equals(parameters('provisionSqlServer'), bool('true'))]",
+                    "condition": "[and(contains(parameters('installedProducts'), 'NTA'), equals(parameters('useAzureSql'), bool('true')))]",
+                    "name": "[parameters('ntaDatabaseName')]",
+                    "type": "databases",
+                    "apiVersion": "2019-06-01-preview",
+                    "location": "[parameters('location')]",
+                    "tags": {
+                        "displayName": "Database"
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers/', parameters('dbServerName'))]"
+                    ],
+                    "properties": {
+                        "collation": "SQL_Latin1_General_CP1_CI_AS"
+                    },
+                    "sku": {
+                        "name": "S3",
+                        "tier": "Standard"
+                    }
+                },
+                {
+                    "condition": "[and(contains(parameters('installedProducts'), 'LA'), equals(parameters('useAzureSql'), bool('true')))]",
+                    "name": "[parameters('laDatabaseName')]",
+                    "type": "databases",
+                    "apiVersion": "2019-06-01-preview",
+                    "location": "[parameters('location')]",
+                    "tags": {
+                        "displayName": "Database"
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers/', parameters('dbServerName'))]"
+                    ],
+                    "properties": {
+                        "collation": "SQL_Latin1_General_CP1_CI_AS"
+                    },
+                    "sku": {
+                        "name": "S3",
+                        "tier": "Standard"
+                    }
+                },
+                {
+                    "condition": "[equals(parameters('useAzureSql'), bool('true'))]",
                     "name": "AllowAllMicrosoftAzureIps",
                     "type": "firewallRules",
                     "apiVersion": "2019-06-01-preview",
@@ -527,17 +653,41 @@
                         },
                         "protectedSettings": {
                             "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File installation_script.ps1 '
-                                ,'-silentConfigUri \"', variables('silentConfigUri')
+                                ,'-installedProducts \"', parameters('installedProducts')
+                                ,'\" -silentConfigUri \"', variables('silentConfigUri')
                                 ,'\" -installerUri \"', variables('installerUri')
                                 ,'\" -dbServerName '
-                                    , if(equals(parameters('provisionSqlServer'), bool('false'))
+                                    , if(equals(parameters('useAzureSql'), bool('false'))
                                         , parameters('dbServerName')
                                         , reference(resourceId('Microsoft.SQL/servers', parameters('dbServerName')), '2019-06-01-preview').fullyQualifiedDomainName)
-                                ,' -databaseName ', replace(replace(replace(replace(replace(replace(parameters('databaseName'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>')
-                                ,' -dbUserName ',replace(replace(replace(replace(replace(replace(parameters('dbUserName'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>')
-                                ,' -dbPassword ', replace(replace(replace(replace(replace(replace(parameters('dbPassword'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>')
-                                ,' -appUserPassword ', replace(replace(replace(replace(replace(replace(parameters('appUserPassword'), '^', '^^'), '&', '^&'), '\\', '^\\'), '|', '^|'), '<', '^<'), '>', '^>')
+                                ,' -databaseName ', SolarWinds.escape(parameters('databaseName'))
+                                ,' -dbUserName ',SolarWinds.escape(parameters('dbUserName'))
+                                ,' -dbPassword ', SolarWinds.escape(parameters('dbPassword'))
+                                ,' -appUserPassword ', SolarWinds.escape(parameters('appUserPassword'))
                                 ,' -vmName ',parameters('virtualMachineName')
+                                ,' -ntaDBServerName '
+                                    , if(equals(parameters('useAzureSql'), bool('false'))
+                                        , parameters('ntaServerName')
+                                        , reference(resourceId('Microsoft.SQL/servers', parameters('dbServerName')), '2019-06-01-preview').fullyQualifiedDomainName)
+                                ,' -ntaDBName ', SolarWinds.escape(parameters('ntaDatabaseName'))
+                                ,' -ntaDBUserName ', if(equals(parameters('useAzureSql'), bool('false')), 
+                                    SolarWinds.escape(parameters('ntaUserName')),
+                                    SolarWinds.escape(parameters('dbUserName')))
+                                ,' -ntaDBPassword ', if(equals(parameters('useAzureSql'), bool('false')), 
+                                    SolarWinds.escape(parameters('ntaPassword')), 
+                                    SolarWinds.escape(parameters('dbPassword')))
+                                ,' -laDBServerName '
+                                    , if(equals(parameters('useAzureSql'), bool('false'))
+                                        , parameters('laServerName')
+                                        , reference(resourceId('Microsoft.SQL/servers', parameters('dbServerName')), '2019-06-01-preview').fullyQualifiedDomainName)
+                                ,' -laDBName ', SolarWinds.escape(parameters('laDatabaseName'))
+                                ,' -laDBUserName ', if(equals(parameters('useAzureSql'), bool('false')), 
+                                    SolarWinds.escape(parameters('laUserName')),
+                                    SolarWinds.escape(parameters('dbUserName')))
+                                ,' -laDBPassword ', if(equals(parameters('useAzureSql'), bool('false')), 
+                                    SolarWinds.escape(parameters('laPassword')), 
+                                    SolarWinds.escape(parameters('dbPassword')))
+                                ,' -createDatabases ', parameters('createDatabases')
                                 )]"
                         }
                     }
@@ -566,9 +716,25 @@
             "type": "string",
             "value": "[parameters('dbUserName')]"
         },
+        "NTA Database": {
+            "type": "string",
+            "value": "[parameters('ntaDatabaseName')]"
+        },
+        "NTA DB User": {
+            "type": "string",
+            "value": "[if(equals(parameters('useAzureSql'), bool('false')), parameters('ntaUserName'), parameters('dbUserName'))]"
+        },
+        "LA Database": {
+            "type": "string",
+            "value": "[parameters('laDatabaseName')]"
+        },
+        "LA DB User": {
+            "type": "string",
+            "value": "[if(equals(parameters('useAzureSql'), bool('false')), parameters('laUserName'), parameters('dbUserName'))]"
+        },
         "App URL Link": {
             "type": "string",
-            "value": "[if(equals(parameters('publicIpNewOrExisting'), 'none'), '', concat('https://', reference(resourceId(parameters('publicIpResourceGroupName'), 'Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName')), '2019-11-01').dnsSettings.fqdn, ':8787/orion'))]"
+            "value": "[if(equals(parameters('publicIpNewOrExisting'), 'none'), '', concat('https://', reference(resourceId(parameters('publicIpResourceGroupName'), 'Microsoft.Network/publicIPAddresses', parameters('publicIpAddressName')), '2019-11-01').dnsSettings.fqdn, ':', variables('webConsolePort'), '/orion'))]"
         },
         "App default User": {
             "type": "string",

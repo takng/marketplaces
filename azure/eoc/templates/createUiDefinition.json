@@ -38,7 +38,7 @@
 						"name": "osDiskType",
 						"type": "Microsoft.Common.DropDown",
 						"label": "OS Disk type",
-						"defaultValue": "Standard HDD",
+						"defaultValue": "Standard SSD",
 						"toolTip": "You can choose between Azure managed disks types to support your workload or scenario. Learn more about managed disk types.",
 						"constraints": {
 							"allowedValues": [{
@@ -212,7 +212,7 @@
 						},
 						"toolTip": {
 							"publicIpAddress": "Public IP address for the VM.",
-							"domainNameLabel": "DNS Prefix for the public IP address must be globally unique. Orion Web Console will be accessible via https://[dnsname]:8787/Orion"
+							"domainNameLabel": "DNS Prefix for the public IP address must be globally unique. The Orion Web Console will be accessible via https://[dnsname]:8787/Orion"
 						},
 						"defaultValue": {
 							"publicIpAddressName": "[concat('pip-', steps('AzureVM').appName, '-', location())]",
@@ -231,122 +231,6 @@
 				]
 			},
 			{
-				"name": "DatabaseSettings",
-				"label": "Database Settings",
-				"subLabel": {
-					"preValidation": "Database settings",
-					"postValidation": "Done!"
-				},
-				"bladeTitle": "Database Settings",
-				"elements": [{
-						"name": "installationtype",
-						"type": "Microsoft.Common.OptionsGroup",
-						"label": "Installation Type",
-						"defaultValue": "Azure SQL DB",
-						"toolTip": "Select Installation Type",
-						"constraints": {
-							"allowedValues": [{
-									"label": "Azure SQL DB",
-									"value": true
-								},
-								{
-									"label": "Microsoft SQL",
-									"value": false
-								}
-							],
-							"required": true
-						},
-						"visible": true
-					},
-					{
-						"name": "AzureSqlDbDetails",
-						"type": "Microsoft.Common.Section",
-						"label": "Enter Azure SQL DB details",
-						"elements": [
-							{
-								"name": "ShowExpressTextFirst",
-								"type": "Microsoft.Common.TextBlock",
-								"options": {
-									"text": "Orion will create a 'Standard S3' tier Azure SQL database \nwhich is recommended for most evaluations."
-								}
-							},
-							{
-								"name": "ShowExpressTextSecond",
-								"type": "Microsoft.Common.TextBlock",
-								"options": {
-									"text": "Upgrading the Azure SQL database tier may be done at any time through the Microsoft Azure Portal and does not require any changes to Orion."
-								}
-							}
-						],
-						"visible": "[steps('DatabaseSettings').installationtype]"
-					},
-					{
-						"name": "AzureDbDetails",
-						"type": "Microsoft.Common.Section",
-						"label": "Enter Orion Database details",
-						"elements": [
-							{
-								"name": "ShowDBConnectionTest",
-								"type": "Microsoft.Common.TextBlock",
-								"options": {
-									"text": "Existing Azure SQL DB or SQL Server connection information:"
-								}
-							},
-							{
-								"name": "dbServerName",
-								"type": "Microsoft.Common.TextBox",
-								"label": "DB Server Name (FQDN)",
-								"toolTip": "Provide a Fully Qualified SQL Server name. This must be an existing SQL Server.",
-								"constraints": {
-									"regex": "([a-zA-Z0-9-]*\\.){3}",
-									"required": true,
-									"validationMessage": "The SQL Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only alongwith FQDN (e.g [your_server_name].database.windows.net). The SQL server should be an existing server."
-								}
-							},
-							{
-								"name": "databaseName",
-								"type": "Microsoft.Common.TextBox",
-								"label": "Database Name",
-								"toolTip": "Provide Orion database name.",
-								"constraints": {
-									"regex": "^(?!master$|model$|msdb$|tempdb$|pdwtempdb$|pdwtempdb1$|pdwtempdb2$|DWConfiguration$|DWDiagnostics$|DWQueue$)[\\w~`!@#$%^&*()_\\-+=[{\\]}\\|;:',<>\/?]{1,128}$",
-									"required": true,
-									"validationMessage": "The Database Name should be maximum 128 characters long and should not contain reserved words (like master, model, tempdb, etc.) and double quote characters: '\"'"
-								}
-							}
-						],
-						"visible": "[not(steps('DatabaseSettings').installationtype)]"
-					},
-					{
-						"name": "dbUserName",
-						"type": "Microsoft.Common.TextBox",
-						"label": "DB Server Admin User Name",
-						"toolTip": "Provide database server admin user name.",
-						"constraints": {
-							"regex": "^(?!admin$|administrator$|sa$|root$|dbmanager$|loginmanager$|dbo$|guest$|information_schema$|sys$|db_accessadmin$|db_backupoperator$|db_datareader$|db_datawriter$|db_ddladmin$|db_denydatareader$|db_denydatawriter$|db_owner$|db_securityadmin$|public$|@|\\$|[0-9])[a-z0-9A-Z-_!@$^]{3,79}$",
-							"required": true,
-							"validationMessage": "Make sure your login name meets the following requirements - It's a SQL Identifier, and not a typical system name (like admin, administrator, sa, root, dbmanager, loginmanager, etc.), or a built-in database user or role (like dbo, guest, public, etc.). Make sure your name doesn't contain whitespaces, unicode characters, or nonalphabetic characters, and that it doesn't begin with numbers or symbols."
-						},
-						"visible": true
-					},
-					{
-						"name": "dbPassword",
-						"type": "Microsoft.Common.PasswordBox",
-						"toolTip": "Provide database server admin password.",
-						"label": {
-							"password": "Password",
-							"confirmPassword": "Confirm password"
-						},
-						"constraints": {
-							"required": true,
-							"regex": "^(((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))|((?=.*[a-z])(?=.*[A-Z])(?=.*[~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?]))|((?=.*[a-z])(?=.*[0-9])(?=.*[~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?]))|((?=.*[A-Z])(?=.*[0-9])(?=.*[~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?])))[\\w~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?]{8,128}$",
-							"validationMessage": "Your password must be at least 8 characters in length. Your password must contain characters from three of the following categories: English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.) except of single and double quote characters: ''' and '\"'"
-						},
-						"visible": true
-					}
-				]
-			},
-			{
 				"name": "OrionInstallation",
 				"label": "Orion Installation",
 				"subLabel": {
@@ -354,14 +238,15 @@
 					"postValidation": "Done!"
 				},
 				"bladeTitle": "Orion Installation",
-				"elements": [{
+				"elements": [
+					{
 						"name": "appUserPassword",
 						"type": "Microsoft.Common.PasswordBox",
 						"label": {
 							"password": "Orion Web Console \"Admin\" Password",
 							"confirmPassword": "Confirm \"Admin\" password"
 						},
-						"toolTip": "Create EOC application password to access Orion Web Console for \"Admin\" user",
+						"toolTip": "Create password for \"Admin\" user to access the Orion Web Console.",
 						"constraints": {
 							"regex": "^[\\w~`!@#$%^&*()_\\-+=[{\\]}\\|;:',<.>\/?]{8,50}$",
 							"validationMessage": "Orion 'Admin' password must be at least 8 characters in length. It may contain letters, numbers and most of special characters (except of double quote '\"'). Maximum length 50 characters.",
@@ -398,6 +283,115 @@
                         }
                     }
 				]
+			},
+			{
+				"name": "DatabaseSettings",
+				"label": "Database Settings",
+				"subLabel": {
+					"preValidation": "Database settings",
+					"postValidation": "Done!"
+				},
+				"bladeTitle": "Database Settings",
+				"elements": [{
+						"name": "useAzureSql",
+						"type": "Microsoft.Common.OptionsGroup",
+						"label": "Installation Type",
+						"defaultValue": "Azure SQL DB",
+						"toolTip": "Select Installation Type",
+						"constraints": {
+							"allowedValues": [{
+									"label": "Azure SQL DB",
+									"value": true
+								},
+								{
+									"label": "Microsoft SQL",
+									"value": false
+								}
+							],
+							"required": true
+						},
+						"visible": true
+					},
+					{
+						"name": "OrionDbDetails",
+						"type": "Microsoft.Common.Section",
+						"label": "Enter Orion Database details",
+						"visible": true,
+						"elements": [{
+							"name": "ShowExpressTextFirst",
+							"type": "Microsoft.Common.TextBlock",
+							"visible": "[steps('DatabaseSettings').useAzureSql]",
+							"options": {
+								"text": "Orion will create a 'Standard S3' tier Azure SQL database (or databases if Network Traffic Analyzer or Log Analyzer is being installed) \nwhich is recommended for most evaluations."
+							}
+						},
+						{
+							"name": "ShowExpressTextSecond",
+							"type": "Microsoft.Common.TextBlock",
+							"visible": "[steps('DatabaseSettings').useAzureSql]",
+							"options": {
+								"text": "Upgrading the Azure SQL database tier may be done at any time through the Microsoft Azure Portal and does not require any changes to Orion."
+							}
+						},
+						{
+							"name": "ShowDBConnectionTest",
+							"type": "Microsoft.Common.TextBlock",
+							"visible": "[not(steps('DatabaseSettings').useAzureSql)]",
+							"options": {
+								"text": "Existing Azure SQL DB or SQL Server connection information:"
+							}
+						},
+						{
+							"name": "dbServerName",
+							"visible": "[not(steps('DatabaseSettings').useAzureSql)]",
+							"type": "Microsoft.Common.TextBox",
+							"label": "DB Server Name (FQDN)",
+							"toolTip": "Provide a Fully Qualified SQL Server name. This must be an existing SQL Server.",
+							"constraints": {
+								"regex": "([a-zA-Z0-9-]*\\.){3}",
+								"required": true,
+								"validationMessage": "The SQL Server Name must be between 3 and 79 characters long and contain letters, numbers and hyphens only alongwith FQDN (e.g [your_server_name].database.windows.net). The SQL server should be an existing server."
+							}
+						},
+						{
+							"name": "databaseName",
+							"visible": "[not(steps('DatabaseSettings').useAzureSql)]",
+							"type": "Microsoft.Common.TextBox",
+							"label": "Database Name",
+							"toolTip": "Provide Orion database name.",
+							"constraints": {
+								"regex": "^(?!master$|model$|msdb$|tempdb$|pdwtempdb$|pdwtempdb1$|pdwtempdb2$|DWConfiguration$|DWDiagnostics$|DWQueue$)[\\w~`!@#$%^&*()_\\-+=[{\\]}\\|;:',<>\/?]{1,128}$",
+									"required": true,
+									"validationMessage": "The Database Name should be maximum 128 characters long and should not contain reserved words (like master, model, tempdb, etc.) and double quote characters: '\"'"
+							}
+						},
+						{
+							"name": "dbUserName",
+							"type": "Microsoft.Common.TextBox",
+							"label": "DB Server Admin Username",
+							"toolTip": "Provide database server admin username.",
+							"constraints": {
+								"regex": "^(?!admin$|administrator$|sa$|root$|dbmanager$|loginmanager$|dbo$|guest$|information_schema$|sys$|db_accessadmin$|db_backupoperator$|db_datareader$|db_datawriter$|db_ddladmin$|db_denydatareader$|db_denydatawriter$|db_owner$|db_securityadmin$|public$|@|\\$|[0-9])[a-z0-9A-Z-_!@$^]{3,79}$",
+								"required": true,
+								"validationMessage": "Make sure your login name meets the following requirements - It's a SQL Identifier, and not a typical system name (like admin, administrator, sa, root, dbmanager, loginmanager, etc.), or a built-in database user or role (like dbo, guest, public, etc.). Make sure your name doesn't contain whitespaces, unicode characters, or nonalphabetic characters, and that it doesn't begin with numbers or symbols."
+							}
+						},
+						{
+							"name": "dbPassword",
+							"type": "Microsoft.Common.PasswordBox",
+							"toolTip": "Provide database server admin password.",
+							"label": {
+								"password": "Password",
+								"confirmPassword": "Confirm password"
+							},
+							"constraints": {
+								"required": true,
+								"regex": "^(((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))|((?=.*[a-z])(?=.*[A-Z])(?=.*[~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?]))|((?=.*[a-z])(?=.*[0-9])(?=.*[~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?]))|((?=.*[A-Z])(?=.*[0-9])(?=.*[~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?])))[\\w~`!@#$%^&*()_\\-+=[{\\]}\\|;:,<.>\/?]{8,128}$",
+							"validationMessage": "Your password must be at least 8 characters in length. Your password must contain characters from three of the following categories: English uppercase letters, English lowercase letters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.) except of single and double quote characters: ''' and '\"'"
+							}
+						}]
+					}
+				]
 			}
 		],
 		"outputs": {
@@ -422,11 +416,13 @@
 			"publicIpAddressSku": "[steps('NetworkSettings').publicIpAddress.sku]",
 			"appUserPassword": "[steps('OrionInstallation').appUserPassword]",
 			"ScalabilityEngine": "[steps('OrionInstallation').ScalabilityEngine]",
-			"provisionSqlServer": "[steps('DatabaseSettings').installationtype]",
-			"dbServerName": "[steps('DatabaseSettings').AzureDbDetails.dbServerName]",
-			"databaseName": "[steps('DatabaseSettings').AzureDbDetails.databaseName]",
-			"dbUserName": "[steps('DatabaseSettings').dbUserName]",
-			"dbPassword": "[steps('DatabaseSettings').dbPassword]",
+			"useAzureSql": "[steps('DatabaseSettings').useAzureSql]",
+			"createDatabases": "[not(steps('DatabaseSettings').useAzureSql)]",
+			"dbServerName": "[steps('DatabaseSettings').OrionDbDetails.dbServerName]",
+			"databaseName": "[steps('DatabaseSettings').OrionDbDetails.databaseName]",
+			"dbUserName": "[steps('DatabaseSettings').OrionDbDetails.dbUserName]",
+			"dbPassword": "[steps('DatabaseSettings').OrionDbDetails.dbPassword]",
+			"installedProducts": "EOC",
 			"windowsLicenseType": "[steps('OSDetails').saveMoney.windowsLicenseType]"
 		}
 	}

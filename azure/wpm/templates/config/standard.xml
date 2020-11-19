@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <SilentConfig>
   <InstallerConfiguration>
-    <ProductsToInstall>WPM</ProductsToInstall>
+    <ProductsToInstall></ProductsToInstall>
     <AdvancedInstallMode>True</AdvancedInstallMode>
     <SkipConfigurationWizardRun>False</SkipConfigurationWizardRun>
   </InstallerConfiguration>
@@ -25,7 +25,7 @@
       <Website>
         <Folder>C:\InetPub\SolarWinds</Folder>
         <Address>(All Unassigned)</Address>
-        <Port>8787</Port>
+        <Port>443</Port>
         <ApplicationName>SolarWinds NetPerfMon</ApplicationName>
         <LaunchWebConsole>false</LaunchWebConsole>
         <ConfigurationSkipped_IISNotInstalled>false</ConfigurationSkipped_IISNotInstalled>
@@ -39,6 +39,4 @@
       </Website>
     </Info>
   </Host>
-  <Plugins>
-  </Plugins>
 </SilentConfig>
