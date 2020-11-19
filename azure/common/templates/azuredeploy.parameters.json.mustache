@@ -116,20 +116,32 @@
     },
     "ScalabilityEngine": {
       "value": "No"
+    },
+
+    "useAzureSql": {
+      "value": true
     }
+    {{!
+    "useAzureSql": {
+      "value": false
+    },
+    }}
     {{#additionalDatabase}}
-    ,"{{product}}ServerName": {
+    "{{product}}ServerName": {
         "value": "sqldb-{{product}}-test"
     },
     "{{product}}DatabaseName": {
-        "value": "SolarWinds{{productUpper}}Database"
+        "value": "SolarWinds{{product}}Database"
     },
     "{{product}}UserName": {
         "value": "OrionAdmin"
     },
     "{{product}}Password": {
         "value": "{{password}}"
-    }
+    },
     {{/additionalDatabase}}
+    "createDatabases": {
+      "value": true
+    }
   }
 }

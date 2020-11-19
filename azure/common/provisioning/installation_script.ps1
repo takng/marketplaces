@@ -1,5 +1,6 @@
 param
 (
+	[string]$installedProducts,
 	[string]$silentConfigUri,
 	[string]$installerUri,
 	[string]$dbServerName, 
@@ -15,7 +16,8 @@ param
 	[string]$laDBUserName,
 	[string]$laDBPassword,
 	[string]$appUserPassword,
-	[string]$vmName
+	[string]$vmName,
+	[string]$createDatabases
 )
 
 function Invoke-Request {
@@ -30,6 +32,8 @@ function Invoke-Request {
 	[string]$StatusText = ""
 	[int]$Tries = 0
 	[bool]$Success = $false
+
+	[Net.ServicePointManager]::SecurityProtocol = ([Net.SecurityProtocolType]::SystemDefault -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12)
 
 	do {
 		$Tries++
@@ -61,17 +65,28 @@ function Invoke-Request {
 
 Start-Transcript -Path C:\postinstall.Log
 
-#download the silent installer config file from Artifacts
+# Download the silent installer config file from Artifacts
 Write-Host "Downloading silent installer config file from $silentConfigUri"; [datetime]::Now
 $configfilePath = "C:\Windows\Temp\silentconfig.xml"
 Invoke-Request -Uri $silentConfigUri -OutFile $configfilePath -MaximumRetryCount 3 -RetryIntervalSec 30
-Write-Host "Download Silent installer config file Completed"; [datetime]::Now
+Write-Host "Silent installer config file has been downloaded"; [datetime]::Now
 
-#download the installer from Artifacts
+# Download the installer from Artifacts
 Write-Host "Downloading installer from $installerUri"; [datetime]::Now
 $installer_name = "SolarWinds-Orion-Installer.exe"
 Invoke-Request -Uri $installerUri -OutFile "C:\Windows\Temp\$installer_name" -MaximumRetryCount 3 -RetryIntervalSec 30
-Write-Host "Download installer Completed"; [datetime]::Now
+Write-Host "Installer has been downloaded"; [datetime]::Now
+
+# Check for NTA or LA installation
+$installNta = $installedProducts -like '*NTA*'
+$installLa = $installedProducts -like '*LA*'
+
+# Replace product names for installation
+$ProductToInstall = @{
+    LA  = "OrionLogManager"
+    ETS = "ToolsetWeb"
+}
+$ProductToInstall.Keys | ForEach-Object { $installedProducts = $installedProducts.Replace("$_", $ProductToInstall[$_]) } 
 
 #update DB details
 $xml = New-Object XML
@@ -84,30 +99,89 @@ if ($xml.SilentConfig.Host.Info.Database) {
 	$dbnode.User = $dbUserName    
 	$dbnode.UserPassword = $dbPassword
 	$dbnode.AccountPassword = $dbPassword
+	$dbnode.CreateNewDatabase = $createDatabases
 }
 
-if ($xml.SilentConfig.Host.Info.NetFlowConfiguration.FlowStorageConfig) {
-	$nodeStorageConfig = $xml.SilentConfig.Host.Info.NetFlowConfiguration.FlowStorageConfig
-	$nodeStorageConfig.ServerName = $ntaDBServerName
-	$nodeStorageConfig.DatabaseName = $ntaDBName
-	$nodeStorageConfig.User = $ntaDBUserName
-	$nodeStorageConfig.UserPassword = $ntaDBPassword
-	$nodeStorageConfig.AccountPassword = $ntaDBPassword
+$plugins = $xml.SilentConfig.AppendChild($xml.CreateElement("Plugins"))
+# Adding configuration for LA if it is being installed
+if ($installLa) {
+	write-host "Adding LA tags [ OrionLogConfiguration, StorageConfig, CreateNewDatabase, DatabaseName, ServerName, UseSQLSecurity,User, UserPassword, AccountType, Account, AccountPassword] in silent config "; [datetime]::Now
+	$laDatabaseNode = $xml.SilentConfig.Host.Info.AppendChild($xml.CreateElement("OrionLogConfiguration"));
+	$laStorage = $laDatabaseNode.AppendChild($xml.CreateElement("StorageConfig"));
+	$laStorage.AppendChild($xml.CreateElement("CreateNewDatabase"));
+	$laStorage.AppendChild($xml.CreateElement("DatabaseName"));
+	$laStorage.AppendChild($xml.CreateElement("ServerName"));
+	$laStorage.AppendChild($xml.CreateElement("UseSQLSecurity"));
+	$laStorage.AppendChild($xml.CreateElement("User"));
+	$laStorage.AppendChild($xml.CreateElement("UserPassword"));
+	$laStorage.AppendChild($xml.CreateElement("AccountType"));
+	$laStorage.AppendChild($xml.CreateElement("Account"));
+	$laStorage.AppendChild($xml.CreateElement("AccountPassword"));
+	$plugin = $plugins.AppendChild($xml.CreateElement("Plugin"))
+	$plugin.SetAttribute("FactoryType", "SolarWinds.ConfigurationWizard.Plugin.LogMgmt.SilentConfigureFactory");
+	$plugin.SetAttribute("Assembly", "SolarWinds.ConfigurationWizard.Plugin.LogMgmt");
 }
 
-if ($xml.SilentConfig.Host.Info.OrionLogConfiguration.StorageConfig) {
+# Adding configuration for NTA if it is being installed
+if ($installNta) {
+	write-host "Adding NTA tags [ OrionLogConfiguration, StorageConfig, CreateNewDatabase, DatabaseName, ServerName, UseSQLSecurity,User, UserPassword, AccountType, Account, AccountPassword] in silent config "; [datetime]::Now
+	$ntaDatabaseNode = $xml.SilentConfig.Host.Info.AppendChild($xml.CreateElement("NetFlowConfiguration"));
+	$ntaflowStorage = $ntaDatabaseNode.AppendChild($xml.CreateElement("FlowStorageConfig"));
+	$ntaflowStorage.AppendChild($xml.CreateElement("CreateNewDatabase"));
+	$ntaflowStorage.AppendChild($xml.CreateElement("DatabaseName"));
+	$ntaflowStorage.AppendChild($xml.CreateElement("ServerName"));
+	$ntaflowStorage.AppendChild($xml.CreateElement("UseSQLSecurity"));
+	$ntaflowStorage.AppendChild($xml.CreateElement("User"));
+	$ntaflowStorage.AppendChild($xml.CreateElement("UserPassword"));
+	$ntaflowStorage.AppendChild($xml.CreateElement("AccountType"));
+	$ntaflowStorage.AppendChild($xml.CreateElement("Account"));
+	$ntaflowStorage.AppendChild($xml.CreateElement("AccountPassword"));
+	$plugin = $plugins.AppendChild($xml.CreateElement("Plugin"))
+	$plugin.SetAttribute("FactoryType", "SolarWinds.ConfigurationWizard.Plugin.NetFlow.SilentMode.NetFlowSilentConfigureFactory");
+	$plugin.SetAttribute("Assembly", "SolarWinds.ConfigurationWizard.Plugin.NetFlow");
+}
+
+# Update LA specific database details
+if ($xml.SilentConfig.Host.Info.OrionLogConfiguration.StorageConfig -and $installLa) {
+	Write-Host "Updating LA database section"; [datetime]::Now
 	$nodeStorageConfig = $xml.SilentConfig.Host.Info.OrionLogConfiguration.StorageConfig
-	$nodeStorageConfig.ServerName = $laDBServerName
+	$nodeStorageConfig.ServerName = 'tcp:' + $laDBServerName
 	$nodeStorageConfig.DatabaseName = $laDBName
 	$nodeStorageConfig.User = $laDBUserName
 	$nodeStorageConfig.UserPassword = $laDBPassword
+	$nodeStorageConfig.AccountType = 'NewSql'
+	$nodeStorageConfig.Account = 'SolarWindsLaDatabaseUser'
 	$nodeStorageConfig.AccountPassword = $laDBPassword
+	$nodeStorageConfig.CreateNewDatabase = $createDatabases
+	$nodeStorageConfig.UseSQLSecurity = 'True'
+	Write-Host "LA Database Name " $nodeStorageConfig.DatabaseName
+}
+
+# Update NTA specific database details
+if ($xml.SilentConfig.Host.Info.NetFlowConfiguration.FlowStorageConfig -and $installNta) {
+	Write-Host "Updating NTA database section"; [datetime]::Now
+	$nodeStorageConfig = $xml.SilentConfig.Host.Info.NetFlowConfiguration.FlowStorageConfig
+	$nodeStorageConfig.ServerName = 'tcp:' + $ntaDBServerName
+	$nodeStorageConfig.DatabaseName = $ntaDBName
+	$nodeStorageConfig.User = $ntaDBUserName
+	$nodeStorageConfig.UserPassword = $ntaDBPassword
+	$nodeStorageConfig.AccountType = 'NewSql'
+	$nodeStorageConfig.Account = 'SolarWindsNtaDatabaseUser'
+	$nodeStorageConfig.AccountPassword = $ntaDBPassword
+	$nodeStorageConfig.CreateNewDatabase = $createDatabases
+	$nodeStorageConfig.UseSQLSecurity = 'True'
+	Write-Host "NTA Database Name " $nodeStorageConfig.DatabaseName
 }
 
 if ($xml.SilentConfig.Host.Info.Website) {
 	$nodeWebsite = $xml.SilentConfig.Host.Info.Website
 	$nodeWebsite.DefaultAdminPassword = $appUserPassword
 	$nodeWebsite.CertificateResolvableCN = $vmName
+}
+
+if ($xml.SilentConfig.InstallerConfiguration) {
+	$node = $xml.SilentConfig.InstallerConfiguration
+	$node.ProductsToInstall = $installedProducts
 }
 
 $xml.Save($configfilePath)
@@ -117,12 +191,12 @@ New-Item C:\Windows\Temp\installer.ps1 -ItemType file
 Add-Content 'C:\Windows\Temp\installer.ps1' .\$installer_name" /s /ConfigFile=""$configfilePath"""
 
 #Start installation
-Write-Host ' starting installation solarwindinstaller....'; [datetime]::Now
+Write-Host 'Starting installation....'; [datetime]::Now
 Set-Location "C:\Windows\Temp"
 .\installer.ps1
-Write-Host ' installation started solarwindinstaller....'; [datetime]::Now
+Write-Host 'Installation has started'; [datetime]::Now
 
-#check for if installation status
+# Wait and check for installation to be done
 $process_name = $installer_name.Substring(0, $installer_name.LastIndexOf('.'))
 while (1) {
 	$Solarwinds = Get-Process $process_name -ErrorAction SilentlyContinue
@@ -132,21 +206,21 @@ while (1) {
 		continue;
 	}
 	else {
-		Write-Host "process completed"; [datetime]::Now
+		Write-Host "SolarWinds installer process completed"; [datetime]::Now
 		Remove-Variable Solarwinds
 		break;
 	}
 }
 
-#delete files created in installation process
-Write-Host ' Deleting the files created in installation process'; [datetime]::Now
+# Delete files created in installation process
+Write-Host 'Deleting files created in installation process'; [datetime]::Now
 
 $installer_file = "C:\Windows\Temp\installer.ps1"
 if (Test-Path $installer_file) {
 	Remove-Item $installer_file
-	write-host 'silent installer file deleted'; [datetime]::Now
+	Write-Host 'Silent installer file deleted'; [datetime]::Now
 }
 
-Write-Host 'Files deleted which has been created in installation process'; [datetime]::Now 
+Write-Host 'Temporary files have been deleted'; [datetime]::Now 
 
 Stop-Transcript

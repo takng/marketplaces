@@ -41,37 +41,37 @@ $Guid = New-Guid
 $WorkFolder = ".\$Product\templates"
 $DscFolder = "$WorkFolder\DSC"
 $InstallerFolder = "$WorkFolder\installer"
-$SilentConfigFolder = "$WorkFolder\config"
+$ConfigFolder = "$WorkFolder\config"
 
-$SilentConfigFileName = "standard.xml"
 $MainTemplateFileName = "mainTemplate.json"
 $AzureDeployParametersFileName = "azuredeploy.parameters.json"
+$AzureDeployParametersFileNameExclude = "azuredeploy.parameters.*"
 $UiDefinitionFileName = "createUiDefinition.json"
 
-$SilentConfigFilePath = "$SilentConfigFolder\$SilentConfigFileName"
 $MainTemplateFilePath = "$WorkFolder\$MainTemplateFileName"
 $AzureDeployParametersFilePath = "$WorkFolder\$AzureDeployParametersFileName"
 $UiDefinitionFilePath = "$WorkFolder\$UiDefinitionFileName"
 
-$ProductNames = @{
-    WPM  = "Web Performance Monitor"
-    VNQM = "VoIP & Network Quality Manager"
-    LA   = "Log Analyzer"
-    NCM  = "Network Configuration Manager"
-    VMAN = "Virtualization Manager"
-    SRM  = "Storage Resource Monitor"
-    NPM  = "Network Performance Monitor"
-    NTA  = "NetFlow Traffic Analyzer"
-    UDT  = "User Device Tracker"
-    IPAM = "IP Address Manager"
-    ETS  = "Engineers Toolset"
-    SAM  = "Server & Application Monitor"
-    EOC  = "Enterprise Operations Console"
-    SCM  = "Server Configuration Monitor"
+$Products = @('EOC', 'SAM', 'VMAN', 'SCM', 'WPM', 'NPM', 'NTA', 'NCM', 'IPAM', 'LA', 'SRM', 'UDT', 'VNQM', 'ETS')
+$ProductDetails = @{
+    WPM  = @{ Name = "Web Performance Monitor"; Description = "Comprehensive website and web application performance monitoring from an end-user perspective" }
+    VNQM = @{ Name = "VoIP & Network Quality Manager"; Description = "VoIP monitoring software designed for deep critical call QoS metrics and WAN performance insights" }
+    LA   = @{ Name = "Log Analyzer"; Description = "Collect and analyze event log data to gain insight into the performance of your IT infrastructure" }
+    NCM  = @{ Name = "Network Configuration Manager"; Description = "Automate multi-vendor network configuration management and compliance" }
+    VMAN = @{ Name = "Virtualization Manager"; Description = "Manage virtual infrastructure, optimize performance, fix issues, and control resource sprawl" }
+    SRM  = @{ Name = "Storage Resource Monitor"; Description = "Multi-vendor storage array performance, capacity, and hardware status monitoring" }
+    NPM  = @{ Name = "Network Performance Monitor"; Description = "Multi-vendor network monitoring software designed to reduce network outages and improve performance" }
+    NTA  = @{ Name = "NetFlow Traffic Analyzer"; Description = "Multi-vendor network flow (NetFlow, sFlow, J-Flow, IPFIX, etc.) traffic analyzer and bandwidth monitoring software" }
+    UDT  = @{ Name = "User Device Tracker"; Description = "Network device tracking software that can locate users and devices on your network and manage their connectivity" }
+    IPAM = @{ Name = "IP Address Manager"; Description = "Track and manage IP addresses and DNS and DHCP resources, helping you save time and prevent errors" }
+    ETS  = @{ Name = "Engineer's Toolset"; Description = "SolarWinds® Engineer’s Toolset (ETS) helps you monitor and troubleshoot your network with the most trusted tools in network management." }
+    SAM  = @{ Name = "Server & Application Monitor"; Description = "SolarWinds Server & Application Monitor (SAM) monitors your applications and their supporting infrastructure, whether they run on-premises, in the cloud, or in a hybrid environment. Automatically discover your dependencies, identify slow applications, and pinpoint root cause issues." }
+    EOC  = @{ Name = "Enterprise Operations Console"; Description = "Unified visibility of status and performance of geographically distributed networks and systems" }
+    SCM  = @{ Name = "Server Configuration Monitor"; Description = "Detect, alert, and track configuration changes to servers, applications, and databases - including who made the change, what changed, and if it affected performance." }
 }
 
 $ProductToInstall = @{
-    LA = "OrionLogManager"
+    LA  = "OrionLogManager"
     ETS = "ToolsetWeb"
 }
 
@@ -82,7 +82,8 @@ function Get-ProductToInstall {
 
     if ($ProductToInstall.ContainsKey($Product)) {
         return $ProductToInstall[$Product]
-    } else {
+    }
+    else {
         return $Product.ToUpper()
     }
 }
@@ -115,14 +116,11 @@ if (-not $ResourceGroupName) {
 Write-Host "Resource Group: $ResourceGroupName"
 
 Write-Host "Creating a folder structure..."
-if (-not (Test-Path $DscFolder)) {
-    New-Item $DscFolder -ItemType "Directory"
-}
-if (-not (Test-Path $InstallerFolder)) {
-    New-Item $InstallerFolder -ItemType "Directory"
-}
-if (-not (Test-Path $SilentConfigFolder)) {
-    New-Item $SilentConfigFolder -ItemType "Directory"
+$FoldersToCheck = $DscFolder, $InstallerFolder, $ConfigFolder
+foreach ($FolderToCheck in $FoldersToCheck) {
+    if (-not (Test-Path $FolderToCheck)) {
+        New-Item $FolderToCheck -ItemType "Directory"
+    }    
 }
 
 Write-Host "Creating DSC archives..."
@@ -142,22 +140,59 @@ Copy-Item -Path ".\common\installer\*.exe" -Destination $InstallerFolder -Recurs
 Write-Host "Copying provisioning scripts to $WorkFolder..."
 Copy-Item -Path ".\common\provisioning\*" -Destination $WorkFolder -Recurse -Force
 
-$TemplateParameters = @"
-{ 
-    pid: '$($Pids[$Product])',
-    product: '$Product',
-    productToInstall: '$(Get-ProductToInstall $Product)',
-    productFull: '$($ProductNames[$Product])', 
-    productUpper: '$($Product.ToUpper())', 
-    additionalDatabase: '$(if($Product -eq "nta" -or $Product -eq "la") { "true" } else {"false" })',
-    la: '$(if($Product -eq "la") { "true" } else {"false" })',
-    nta: '$(if($Product -eq "nta") { "true" } else {"false" })' }
-"@
+Write-Host "Copying config filesto $WorkFolder\config..."
+Copy-Item -Path ".\common\config\*" -Destination $ConfigFolder -Recurse -Force
 
+$json = [ordered]@{ 
+    pid              = $Pids[$Product]; 
+    product          = $Product;
+    productToInstall = Get-ProductToInstall $Product; 
+    productFull      = $ProductDetails[$Product].Name; 
+    productUpper     = $Product.ToUpper();
+    productDescription = $ProductDetails[$Product].Description
+    allProducts      = [System.Collections.ArrayList] @();
+    otherProducts    = [System.Collections.ArrayList] @();
+    productsWithDbs  = [System.Collections.ArrayList] @();
+    isEOC            = ($Product -eq 'EOC');
+} 
+
+if (-not $json.isEOC) {
+    foreach ($Name in ($Products | Where-Object { $_ -ne 'EOC' })) {
+        $json.allProducts.Add(@{ 
+                name          = $Name.ToLower(); 
+                nameToInstall = (Get-ProductToInstall $Name);
+                nameFull      = $ProductDetails[$Name].Name;
+                nameUpper     = $Name;
+                isDefault     = ($Name -eq $Product);
+            }) | Out-Null
+    }
+    $json.allProducts[-1].last = 1
+
+    foreach ($Name in ($Products | Where-Object { $_ -ne $Product -and $_ -ne 'EOC' })) {
+        $json.otherProducts.Add(@{ 
+                name          = $Name.ToLower(); 
+                nameToInstall = (Get-ProductToInstall $Name);
+                nameFull      = $ProductDetails[$Name].Name;
+                nameUpper     = $Name;
+                nameDescription = $ProductDetails[$Name].Description
+            }) | Out-Null
+    }
+    $json.otherProducts[-1].last = 1
+
+    foreach ($Name in ($Products | Where-Object { $_ -eq 'NTA' -or $_ -eq 'LA' })) {
+        $json.productsWithDbs.Add(@{ 
+                name          = $Name.ToLower(); 
+                nameToInstall = (Get-ProductToInstall $Name);
+                nameFull      = $ProductDetails[$Name].Name;
+                nameUpper     = $Name;
+                isCurrent     = $Name -eq $Product;
+            }) | Out-Null
+    }
+    $json.productsWithDbs[-1].last = 1
+} 
+
+$TemplateParameters = $json | ConvertTo-Json
 Write-Host "Template parameters: $TemplateParameters"
-Write-Host "Processing configuration template and saving to $SilentConfigFilePath"
-& ".\Build-Template.ps1" -TemplatePath ".\common\templates\$SilentConfigFileName.mustache" -OutputFile $SilentConfigFilePath -Parameters $TemplateParameters
-
 Write-Host "Processing UI definition template and saving to $UiDefinitionFilePath"
 & ".\Build-Template.ps1" -TemplatePath ".\common\templates\$UiDefinitionFileName.mustache" -OutputFile $UiDefinitionFilePath -Parameters $TemplateParameters
 
@@ -172,7 +207,7 @@ if ($BuildPackage) {
     }
 
     $date = Get-Date -Format "yyyy_MM_dd"
-    Get-ChildItem -Path $WorkFolder -Exclude $AzureDeployParametersFileName |
+    Get-ChildItem -Path $WorkFolder -Exclude $AzureDeployParametersFileNameExclude |
     Compress-Archive -DestinationPath "$outputPath\$Product-$date.zip" -Update
     exit
 }
@@ -181,38 +216,31 @@ if ($ParametersFile) {
     #Copy-Item -Path $ParametersFile -Destination $AzureDeployParametersFilePath
 }
 else {
-    $TemplateParameters = @"
-    { 
-        location: '$Location',
-        product: '$Product',
-        password: '$Password',
-        guid: '$Guid',
-        resourceGroup: '$ResourceGroupName',
-        isNta: '$(if($Product -eq "nta") { "true" } else {"false" })'
-        $( if($VNetResourceGroupName) {
-            @"
-            ,existingVnet: {
-                vnet: "$VnetName",
-                subnet: "$SubnetName",
-                resourceGroup: "$VNetResourceGroupName"  
-            }
-"@      })
-        $( if($PublicIpResourceGroupName) {
-            @"
-            ,existingIp: {
-                ipName: "$PublicIpAddressName",
-                ipDns: "$PublicIpDns",
-                resourceGroup: "$PublicIpResourceGroupName"  
-            }
-"@      })
-    }
-"@
+    $jsonParam = [ordered]@{ 
+        location      = $Location; 
+        product       = $Product;
+        password      = $Password; 
+        resourceGroup = $ResourceGroupName;
+    } 
 
-    Write-Host "Template parameters: $TemplateParameters"
+    if ($Product -eq 'nta' -or $Product -eq 'la') {
+        $jsonParam.additionalDatabase = true
+    }
+
+    if ($VNetResourceGroupName) {
+        $jsonParam.existingVnet = @{ vnet = $VnetName; subnet = $SubnetName; resourceGroup = $VNetResourceGroupName; }
+    }
+    if ($PublicIpResourceGroupName) {
+        jsonParam.existingIp = @{ ipName = $PublicIpAddressName; ipDns = $PublicIpDns; resourceGroup = $PublicIpResourceGroupName; }
+    }
+
+    $OptionParameters = $jsonParam | ConvertTo-Json
+
+    Write-Host "Parameters: $OptionParameters"
     Write-Host "Processing deployment parameters and saving to $AzureDeployParametersFilePath"
     & ".\Build-Template.ps1" -TemplatePath  ".\common\templates\$AzureDeployParametersFileName.mustache" `
         -OutputFile $AzureDeployParametersFilePath `
-        -Parameters $TemplateParameters
+        -Parameters $OptionParameters
 }
 
 if ($SkipDeploy) {
@@ -222,4 +250,4 @@ if ($SkipDeploy) {
 }
 
 Write-Host "Starting deployment..."
-& ".\Deploy-AzTemplate.ps1" -ArtifactStagingDirectory $WorkFolder -Location $Location -ResourceGroupName $ResourceGroupName
+& ".\Deploy-AzTemplate.ps1" -ArtifactStagingDirectory $WorkFolder -Location $Location -ResourceGroupName $ResourceGroupName -TemplateParametersFile $(if ($ParametersFile) { $ParametersFile } else { $AzureDeployParametersFilePath })

@@ -29,6 +29,8 @@ Configuration Net48Install
                     [int]$Tries = 0
                     [bool]$Success = $false
                 
+                    [Net.ServicePointManager]::SecurityProtocol = ([Net.SecurityProtocolType]::SystemDefault -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12)
+
                     do {
                         $Tries++
                 

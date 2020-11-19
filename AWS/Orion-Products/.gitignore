@@ -1,5 +1,5 @@
-**/*.test.cfn.json
-**/~*.xlsx
+*.test.cfn.json
+~*.xlsx
 
 *.txt
 *.log
