@@ -5,8 +5,8 @@ param
     [ValidateSet("eoc", "ets", "ipam", "ncm", "npm", "nta", "la", "sam", "scm", "srm", "udt", "vman", "vnqm", "wpm")] [string] $Product,
     [string] $Windows2019AMI = "ami-074bfc9188e9e0245",
     [string] $Windows2016AMI = "ami-0fd514fcda314f145",
-    [switch] $IsRc,
-    [switch] $Debug
+    [switch] $IsRc, #IsRC adds a flag to installer to use RC version
+    [switch] $Debug #Debug prints out template parameters passwed to Mustache
 )
 
 $MainTemplateFileName = "cfn.json"
@@ -15,6 +15,8 @@ $Regions = @(@{ name = "us-east-1" },
     @{ name = "us-east-2" },
     @{ name = "us-west-1" },
     @{ name = "us-west-2" },
+    @{ name = "af-south-1" },
+    @{ name = "ap-east-1" },
     @{ name = "ap-south-1" },
     @{ name = "ap-northeast-2" },
     @{ name = "ap-southeast-1" },
@@ -22,10 +24,12 @@ $Regions = @(@{ name = "us-east-1" },
     @{ name = "ap-northeast-1" },
     @{ name = "ca-central-1" },
     @{ name = "eu-central-1" },
+    @{ name = "eu-south-1" },
     @{ name = "eu-west-1" },
     @{ name = "eu-west-2" },
     @{ name = "eu-west-3" },
     @{ name = "eu-north-1" },
+    @{ name = "me-south-1" },
     @{ name = "sa-east-1"; last = 1 })
 
 $ProductNames = @{
@@ -128,7 +132,6 @@ function Build-ProductTemplate($Product) {
         -Parameters $TemplateParameters
 
     if ($IsRc) {
-
         $json.isRc = $true
         $TemplateParameters = $json | ConvertTo-Json
         if ($Debug) {
