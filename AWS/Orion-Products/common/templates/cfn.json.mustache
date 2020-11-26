@@ -534,33 +534,25 @@
                                 "; dbPassword = ",
                                 "'",
                                 {
-                                 "Fn::Join":[ "^>", { "Fn::Split": [ ">", { 
-                                    "Fn::Join":[ "^<", { "Fn::Split": [ "<", { 
-                                       "Fn::Join":[ "^|", { "Fn::Split": [ "|", { 
-                                          "Fn::Join":[ "^\\", { "Fn::Split": [ "\\", { 
-                                             "Fn::Join":[ "^&", { "Fn::Split": [ "&", { 
-                                                "Fn::Join" : [ "^^", { "Fn::Split": [ "^", { "Ref":"DBPassword" } ]}] 
-                                             }]}] 
-                                          }]}]
+                                    "Fn::Join":[ "^|", { "Fn::Split": [ "|", { 
+                                       "Fn::Join":[ "^\\", { "Fn::Split": [ "\\", { 
+                                          "Fn::Join":[ "^&", { "Fn::Split": [ "&", { 
+                                             "Fn::Join" : [ "^^", { "Fn::Split": [ "^", { "Ref":"DBPassword" } ]}] 
+                                          }]}] 
                                        }]}]
                                     }]}]
-                                 }]}]
                                 },
                                 "'",
                                 "; appUserPassword = ",
                                 "'",
                                 {
-                                 "Fn::Join":[ "^>", { "Fn::Split": [ ">", { 
-                                    "Fn::Join":[ "^<", { "Fn::Split": [ "<", { 
-                                       "Fn::Join":[ "^|", { "Fn::Split": [ "|", { 
-                                          "Fn::Join":[ "^\\", { "Fn::Split": [ "\\", { 
-                                             "Fn::Join":[ "^&", { "Fn::Split": [ "&", { 
-                                                "Fn::Join" : [ "^^", { "Fn::Split": [ "^", { "Ref":"Password" } ]}] 
-                                             }]}] 
-                                          }]}]
+                                    "Fn::Join":[ "^|", { "Fn::Split": [ "|", { 
+                                       "Fn::Join":[ "^\\", { "Fn::Split": [ "\\", { 
+                                          "Fn::Join":[ "^&", { "Fn::Split": [ "&", { 
+                                             "Fn::Join" : [ "^^", { "Fn::Split": [ "^", { "Ref":"Password" } ]}] 
+                                          }]}] 
                                        }]}]
                                     }]}]
-                                 }]}]
                                 },
                                 "'",
                                  {{#allProducts}}
