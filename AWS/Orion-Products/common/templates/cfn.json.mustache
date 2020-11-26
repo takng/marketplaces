@@ -4,11 +4,11 @@
    "Parameters":{
       "Password":{
          "Type":"String",
-         "Description":"The password will be used for the Orion Web Console admin user. Minimum 10 characters and must contain characters from three of the following categories: alphabetic characters, numbers (0-9), and non-alphanumeric characters (@,!, $, #, %, etc.) ",
+         "Description":"The password will be used for the Orion Web Console admin user. Minimum 10 characters and must contain characters from three of the following categories: alphabetic characters, numbers (0-9), and non-alphanumeric characters (@,!, $, #, %, etc.) expcept of ' (single quote).",
          "NoEcho":"true",
          "MinLength":"10",
-         "AllowedPattern":"((?=.*\\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{10,50})",
-         "ConstraintDescription":"Your password must be at least 10 characters in length. Maximum password length 50 characters. Your password must contain characters from three of the following categories: alphabetic characters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.)."
+         "AllowedPattern":"^(((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))|((?=.*[a-z])(?=.*[A-Z])(?=.*[~`!@#$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>\/?]))|((?=.*[a-z])(?=.*[0-9])(?=.*[~`!#@$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>\/?]))|((?=.*[A-Z])(?=.*[0-9])(?=.*[~`!@#$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>\/?])))[\\w~`!@#$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>\/?]{10,50}$",
+         "ConstraintDescription":"Your password must be at least 10 characters in length. Maximum password length 50 characters. Your password must contain characters from three of the following categories: alphabetic characters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.) except of ' (single quote)."
       },
       {{#allProducts}}
       "{{nameUpper}}Product": {
@@ -36,15 +36,14 @@
          "ConstraintDescription":"Please select an existing EC2 Key Pair from the dropdown."
       },
       "EC2InstanceTypeParameter":{
-         "Description":"Recommended size: m4.2xlarge - 8 vCPUs, 32 GB Memory",
+         "Description":"Recommended size: m5.xlarge - 4 vCPUs, 16 GB Memory",
          "Type":"String",
-         "Default":"m4.xlarge",
+         "Default":"m5.xlarge",
          "AllowedValues":[
-            "m4.large",
-            "m4.xlarge",
-            "m4.2xlarge",
-            "m5d.2xlarge",
-            "m5.2xlarge"
+            "m5.large",
+            "m5.xlarge",
+            "m5.2xlarge",
+            "m5d.2xlarge"
          ]
       },
       "WindowOSTypeParameter":{
@@ -535,13 +534,25 @@
                                 "; dbPassword = ",
                                 "'",
                                 {
-                                   "Ref":"DBPassword"
+                                    "Fn::Join":[ "^|", { "Fn::Split": [ "|", { 
+                                       "Fn::Join":[ "^\\", { "Fn::Split": [ "\\", { 
+                                          "Fn::Join":[ "^&", { "Fn::Split": [ "&", { 
+                                             "Fn::Join" : [ "^^", { "Fn::Split": [ "^", { "Ref":"DBPassword" } ]}] 
+                                          }]}] 
+                                       }]}]
+                                    }]}]
                                 },
                                 "'",
                                 "; appUserPassword = ",
                                 "'",
                                 {
-                                   "Ref":"Password"
+                                    "Fn::Join":[ "^|", { "Fn::Split": [ "|", { 
+                                       "Fn::Join":[ "^\\", { "Fn::Split": [ "\\", { 
+                                          "Fn::Join":[ "^&", { "Fn::Split": [ "&", { 
+                                             "Fn::Join" : [ "^^", { "Fn::Split": [ "^", { "Ref":"Password" } ]}] 
+                                          }]}] 
+                                       }]}]
+                                    }]}]
                                 },
                                 "'",
                                  {{#allProducts}}
@@ -687,7 +698,7 @@
             "AllocatedStorage":{
                "Ref":"AllocatedStorage"
             },
-            "DBInstanceClass":"db.m4.large",
+            "DBInstanceClass":"db.m5.large",
             "Port":"1433",
             "StorageType":"gp2",
             "BackupRetentionPeriod": 7,
@@ -702,7 +713,7 @@
                "Ref":"DBPassword"
             },
             "Engine":"sqlserver-se",
-            "EngineVersion":"13.00.4422.0.v1",
+            "EngineVersion":"15.00.4043.16.v1",
             "LicenseModel":"license-included",
             "VPCSecurityGroups" : [ { "Ref" : "rdsDBSecurityGroup" }  ],
             "Tags": [
