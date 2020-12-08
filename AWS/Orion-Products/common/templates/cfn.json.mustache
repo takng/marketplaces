@@ -7,7 +7,7 @@
          "Description":"The password will be used for the Orion Web Console admin user. Minimum 10 characters and must contain characters from three of the following categories: alphabetic characters, numbers (0-9), and non-alphanumeric characters (@,!, $, #, %, etc.) except of ' (single quote).",
          "NoEcho":"true",
          "MinLength":"10",
-         "AllowedPattern":"^(((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))|((?=.*[a-z])(?=.*[A-Z])(?=.*[~`!@#$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>\/?]))|((?=.*[a-z])(?=.*[0-9])(?=.*[~`!#@$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>\/?]))|((?=.*[A-Z])(?=.*[0-9])(?=.*[~`!@#$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>\/?])))[\\w~`!@#$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>\/?]{10,50}$",
+         "AllowedPattern":"^(((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))|((?=.*[a-z])(?=.*[A-Z])(?=.*[~`!@#$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>/?]))|((?=.*[a-z])(?=.*[0-9])(?=.*[~`!#@$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>/?]))|((?=.*[A-Z])(?=.*[0-9])(?=.*[~`!@#$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>/?])))[\\w~`!@#$%^&*()_\\-+=\\[\\{\\]\\}\\\\|;:\",<.>/?]{10,50}$",
          "ConstraintDescription":"Your password must be at least 10 characters in length. Maximum password length 50 characters. Your password must contain characters from three of the following categories: alphabetic characters, numbers (0-9), and non-alphanumeric characters (!, $, #, %, etc.) except of ' (single quote)."
       },
       {{#allProducts}}
@@ -59,7 +59,7 @@
          "Type":"String",
          "MinLength":"9",
          "MaxLength":"18",
-         "AllowedPattern":"^(([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}\/(3[0-2]|[1-2]\\d|\\d))$|^(0\\.0\\.0\\.0\/0)$",
+         "AllowedPattern":"^(([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}/(3[0-2]|[1-2]\\d|\\d))$|^(0\\.0\\.0\\.0/0)$",
          "ConstraintDescription":"Must be a valid IP address range in CIDR notation (e.g. '0.0.0.0/0', '192.168.1.1/32', ...)."
       },
       "VolumeParameterType":{
@@ -82,18 +82,18 @@
       },
       "VPCID":{
          "Description":"Stack will be created in the selected VPC. To launch stack in a new VPC, please create a new VPC first.",
-         "AllowedPattern":"vpc-[\\w\\d]+",
+         "AllowedPattern":".+",
          "Type":"AWS::EC2::VPC::Id",
          "ConstraintDescription":"Please select VPC ID from the dropdown."
       },
       "Subnet":{
-         "AllowedPattern":"subnet-[\\w\\d]+",
+         "AllowedPattern":".+",
          "Description": "Please select a subnet for EC2 instance.",
          "Type":"AWS::EC2::Subnet::Id",
          "ConstraintDescription":"Please select a subnet for EC2 instance from the dropdown."
       },
       "DatabaseSubnets": {
-         "AllowedPattern":"subnet-[\\w\\d]+",
+         "AllowedPattern":".+",
          "Description": "The selected VPC should contain at least 2 subnets in a different availablity zones. This is not required in case of an existing database server instance.",
          "Type": "List<AWS::EC2::Subnet::Id>",
          "ConstraintDescription":"Please select at least 2 subnets from the dropdown."
@@ -114,7 +114,7 @@
       "DBInstallationTypeParameter":{
          "Type":"String",
          "Default":"Option 1: Create a new database",
-         "Description": "Orion will create a 'db.m4.large' Microsoft SQL Server database which is recommended for most evaluations. Upgrading the database server may be done at any time through the AWS Console and does not require any changes to Orion.",
+         "Description": "Orion will create a 'db.m5.large' Microsoft SQL Server database which is recommended for most evaluations. Upgrading the database server may be done at any time through the AWS Console and does not require any changes to Orion.",
          "AllowedValues":[
             "Option 1: Create a new database",
             "Option 2: Use an existing database"
@@ -643,32 +643,27 @@
             "SubnetId":{
                "Ref":"Subnet"
             },
-            "BlockDeviceMappings":[
-               {
+            "BlockDeviceMappings": { "Fn::If": [ "isVolumeTypeGP2", 
+               [{
                   "DeviceName":"/dev/sda1",
                   "Ebs":{
-                     "VolumeType":{
-                        "Fn::If":[
-                           "isVolumeTypeGP2",
-                           "gp2",
-                           "io1"
-                        ]
-                     },
+                     "VolumeType": "gp2",
+                     "VolumeSize":{
+                        "Ref":"VolumeSize"
+                     }
+                  }
+               }],
+               [{
+                  "DeviceName":"/dev/sda1",
+                  "Ebs":{
+                     "VolumeType": "io1",
                      "VolumeSize":{
                         "Ref":"VolumeSize"
                      },
-                     "Iops":{
-                        "Fn::If":[
-                           "isVolumeTypeGP2",
-                           {
-                              "Ref":"AWS::NoValue"
-                           },
-                           1500
-                        ]
-                     }
+                     "Iops": 1500
                   }
-               }
-            ],
+               }]]
+            },
             "UserData":{
                "Fn::Base64":{
                   "Fn::Join":[
